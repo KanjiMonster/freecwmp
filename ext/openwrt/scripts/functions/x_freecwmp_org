@@ -1,0 +1,5 @@
+#!/bin/sh
+# Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
+
+. /usr/share/freecwmp/functions/common
+

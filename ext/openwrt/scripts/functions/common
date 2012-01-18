@@ -1,0 +1,47 @@
+#!/bin/sh
+# Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
+
+freecwmp_output()
+{
+local element="$1"
+local value="$2"
+
+if [ -n "$value" -o ${FLAGS_empty} -eq ${FLAGS_TRUE} ]; then
+	if [ ${FLAGS_value} -eq ${FLAGS_TRUE} ]; then
+		echo $ECHO_newline $value
+	else
+		echo $ECHO_newline $element : $value
+	fi
+fi
+}
+
+get_interface_ip()
+{
+local interface="$1"
+
+echo -n `/sbin/ifconfig $interface | grep 'inet addr:' | cut -d ':' -f2 | cut -d ' ' -f1`
+}
+
+get_interface_mac()
+{
+local interface="$1"
+
+echo -n `/sbin/ifconfig $interface | head -n1 | awk -F 'HWaddr ' '{ print $2 }'`
+}
+
+delay_command()
+{
+command="$1"
+delay="$2"
+lock="$3"
+
+if [ ! -x "$lock" ]; then
+	cat > "$lock" <<EOF
+sleep $delay
+$command
+rm "$lock"
+EOF
+	chmod +x "$lock"
+	sh "$lock" &
+fi
+}

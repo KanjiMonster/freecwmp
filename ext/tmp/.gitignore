@@ -1,0 +1,4 @@
+# ignore everything in this directory ; it's used for development (uci)
+*
+# except this file
+!.gitignore
