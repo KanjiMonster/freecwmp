@@ -36,7 +36,7 @@ if [ "$val" = "Enabled" ]; then
 else
 	val="1"
 fi
-delay_command "/etc/init.d/telephony restart" "45" "/tmp/freecwmp_telephony"
+delay_service_restart "telephony" "45"
 uci $uci_options set telephony.@account[$num].disabled="$val"
 }
 

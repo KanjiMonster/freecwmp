@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
+# Copyright (C) 2011-2012 Luka Perkov <freecwmp@lukaperkov.net>
 
 freecwmp_output()
 {
@@ -29,16 +29,17 @@ local interface="$1"
 echo -n `/sbin/ifconfig $interface | head -n1 | awk -F 'HWaddr ' '{ print $2 }'`
 }
 
-delay_command()
+delay_service_restart()
 {
-command="$1"
-delay="$2"
-lock="$3"
+local service="$1"
+local delay="$2"
+local lock="/tmp/freecwmp_$service"
 
 if [ ! -x "$lock" ]; then
 	cat > "$lock" <<EOF
+/etc/init.d/$service stop
 sleep $delay
-$command
+/etc/init.d/$service start
 rm "$lock"
 EOF
 	chmod +x "$lock"
