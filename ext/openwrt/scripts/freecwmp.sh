@@ -5,8 +5,9 @@
 . /usr/share/shflags/shflags.sh
 . /usr/share/freecwmp/defaults
 . /usr/share/freecwmp/functions/device_info
-. /usr/share/freecwmp/functions/wan_device
 . /usr/share/freecwmp/functions/management_server
+. /usr/share/freecwmp/functions/lan_device
+. /usr/share/freecwmp/functions/wan_device
 . /usr/share/freecwmp/functions/voice_service
 . /usr/share/freecwmp/functions/x_freecwmp_org
 
@@ -77,6 +78,9 @@ if [ "$action" = "get" ]; then
 		InternetGatewayDevice.ManagementServer.*)
 		get_management_server "$parameter_name"
 		;;
+		InternetGatewayDevice.LANDevice.*)
+		get_lan_device "$parameter_name"
+		;;
 		InternetGatewayDevice.WANDevice.*)
 		get_wan_device "$parameter_name"
 		;;
@@ -89,6 +93,7 @@ if [ "$action" = "get" ]; then
 		InternetGatewayDevice.*)
 		get_device_info "$parameter_name"
 		get_management_server "$parameter_name"
+		get_lan_device "$parameter_name"
 		get_wan_device "$parameter_name"
 		get_voice_service "$parameter_name"
 		;;
@@ -107,6 +112,9 @@ if [ "$action" = "set" ]; then
 		;;
 		InternetGatewayDevice.WANDevice.*)
 		set_wan_device "$parameter_name" "$value"
+		;;
+		InternetGatewayDevice.LANDevice.*)
+		set_lan_device "$parameter_name" "$value"
 		;;
 		InternetGatewayDevice.Services.VoiceService.*)
 		set_voice_service "$parameter_name" "$value"

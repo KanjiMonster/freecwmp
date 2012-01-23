@@ -37,9 +37,27 @@ local lock="/tmp/freecwmp_$service"
 
 if [ ! -x "$lock" ]; then
 	cat > "$lock" <<EOF
-/etc/init.d/$service stop
+/etc/init.d/$service stop >/dev/null 2>/dev/null
 sleep $delay
-/etc/init.d/$service start
+/etc/init.d/$service start >/dev/null 2>/dev/null
+rm "$lock"
+EOF
+	chmod +x "$lock"
+	sh "$lock" &
+fi
+}
+
+delay_command()
+{
+local name="$1"
+local command="$2"
+local delay="$3"
+local lock="/tmp/freecwmp_command_$name"
+
+if [ ! -x "$lock" ]; then
+	cat > "$lock" <<EOF
+sleep $delay
+$command >/dev/null 2>/dev/null
 rm "$lock"
 EOF
 	chmod +x "$lock"

@@ -162,4 +162,3 @@ case "$1" in
 esac
 uci $uci_options commit
 }
-
