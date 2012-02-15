@@ -11,6 +11,7 @@ echo mkdir -p /usr/share/freecwmp/functions/
 echo ln -s `pwd`/ext/openwrt/scripts/defaults /usr/share/freecwmp/defaults
 echo ln -s `pwd`/ext/openwrt/scripts/functions/common /usr/share/freecwmp/functions/common
 echo ln -s `pwd`/ext/openwrt/scripts/functions/device_info /usr/share/freecwmp/functions/device_info
+echo ln -s `pwd`/ext/openwrt/scripts/functions/lan_device /usr/share/freecwmp/functions/lan_device
 echo ln -s `pwd`/ext/openwrt/scripts/functions/management_server /usr/share/freecwmp/functions/management_server
 echo ln -s `pwd`/ext/openwrt/scripts/functions/voice_service /usr/share/freecwmp/functions/voice_service
 echo ln -s `pwd`/ext/openwrt/scripts/functions/wan_device /usr/share/freecwmp/functions/wan_device
