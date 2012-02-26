@@ -15,6 +15,8 @@ freecwmpd_SOURCES =		\
 	../src/cwmp/local.h	\
 	../src/cwmp/device.h	\
 	../src/cwmp/device.c	\
+	../src/http/b64.h	\
+	../src/http/b64.c	\
 	../src/http/http.h	\
 	../src/http/http.c	\
 	../src/xml/xml.h	\
