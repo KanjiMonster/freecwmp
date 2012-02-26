@@ -428,7 +428,8 @@ xml_handle_message(char *msg_in, char **msg_out)
 	busy_node = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
 	free(c); c = NULL;
 	if (!busy_node)
-		goto error;
+		/* ACS did not send ID parameter, we are continuing without it */
+		goto set_parameter;
 
 	busy_node = mxmlWalkNext(busy_node, tree_in, MXML_DESCEND_FIRST);
 	if (!busy_node || !busy_node->value.text.string)
