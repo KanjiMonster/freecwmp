@@ -25,6 +25,10 @@
 #include <zstream/http.h>
 #endif
 
+#ifndef HTTP_ZSTREAM
+#include "b64.h"
+#endif
+
 #include "http.h"
 
 #include "../freecwmp.h"
@@ -396,12 +400,6 @@ http_new_client(struct uloop_fd *ufd, unsigned events)
 #endif
 
 				if (!strncasecmp(buffer, "Authorization: Basic ", strlen("Authorization: Basic "))) {
-#ifdef HTTP_CURL
-					// TODO: find something like zstream_b64decode() to be used when compiled with libcurl
-					auth_status = 1;
-#endif /* HTTP_CURL */
-
-#ifdef HTTP_ZSTREAM
 					const char *c1, *c2, *min, *val;
 					char *username, *password;
 					char *acs_auth_basic = NULL;
@@ -446,17 +444,23 @@ http_new_client(struct uloop_fd *ufd, unsigned events)
 					}
 					snprintf(auth_basic_check, (len + 1), "%s:%s\0", username, password);
 
-					len = (strlen(acs_auth_basic) < strlen(auth_basic_check)) ? strlen(acs_auth_basic) : strlen(auth_basic_check);
+					if (strlen(acs_auth_basic) == strlen(auth_basic_check)) {
+						len = strlen(acs_auth_basic);
+					} else {
+						auth_status = 0;
+						goto free_resources;
+					}
+
 					if (!memcmp(acs_auth_basic, auth_basic_check, len * sizeof(char)))
 						auth_status = 1;
 					else
 						auth_status = 0;
 
+free_resources:
 					if (username) free(username);
 					if (password) free(password);
 					free(acs_auth_basic);
 					free(auth_basic_check);
-#endif /* HTTP_ZSTREAM */
 				}
 
 				if (buffer[0] == '\r' || buffer[0] == '\n') {
