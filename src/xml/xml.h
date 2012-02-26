@@ -12,15 +12,10 @@
 
 static struct cwmp_namespaces
 {
-	char *soap_env_url;
 	char *soap_env;
-	char *soap_enc_url;
 	char *soap_enc;
-	char *xsd_url;
 	char *xsd;
-	char *xsi_url;
 	char *xsi;
-	char *cwmp_url;
 	char *cwmp;
 } ns;
 

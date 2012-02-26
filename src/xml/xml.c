@@ -17,13 +17,24 @@
 
 #include "xml.h"
 
+const static char *soap_env_url = "http://schemas.xmlsoap.org/soap/envelope/";
+const static char *soap_enc_url = "http://schemas.xmlsoap.org/soap/encoding/";
+const static char *xsd_url = "http://www.w3.org/2001/XMLSchema";
+const static char *xsi_url = "http://www.w3.org/2001/XMLSchema-instance";
+const static char *cwmp_urls[] = {
+		"urn:dslforum-org:cwmp-1-0", 
+		"urn:dslforum-org:cwmp-1-1", 
+		"urn:dslforum-org:cwmp-1-2", 
+		NULL };
+
 static void
 xml_recreate_namespace(char *msg)
 {
 	FC_DEVEL_DEBUG("enter");
 
 	mxml_node_t *tree;
-	char *c;
+	char *c, *cwmp_urn;
+	uint8_t i;
 
 	if (ns.soap_env)
 		free(ns.soap_env);
@@ -40,29 +51,33 @@ xml_recreate_namespace(char *msg)
 	if (!tree)
 		goto done;
 
-	c = (char *) mxmlElementGetAttrName(tree, ns.soap_env_url);
+	c = (char *) mxmlElementGetAttrName(tree, soap_env_url);
 	if (*(c + 5) == ':') {
 		ns.soap_env = strdup((c + 6));
 	}
 
-	c = (char *) mxmlElementGetAttrName(tree, ns.soap_enc_url);
+	c = (char *) mxmlElementGetAttrName(tree, soap_enc_url);
 	if (*(c + 5) == ':') {
 		ns.soap_enc = strdup((c + 6));
 	}
 
-	c = (char *) mxmlElementGetAttrName(tree, ns.xsd_url);
+	c = (char *) mxmlElementGetAttrName(tree, xsd_url);
 	if (*(c + 5) == ':') {
 		ns.xsd = strdup((c + 6));
 	}
 
-	c = (char *) mxmlElementGetAttrName(tree, ns.xsi_url);
+	c = (char *) mxmlElementGetAttrName(tree, xsi_url);
 	if (*(c + 5) == ':') {
 		ns.xsi = strdup((c + 6));
 	}
 
-	c = (char *) mxmlElementGetAttrName(tree, ns.cwmp_url);
-	if (*(c + 5) == ':') {
-		ns.cwmp = strdup((c + 6));
+	for (i = 0; cwmp_urls[i] != NULL; i++) {
+		cwmp_urn = cwmp_urls[i];
+		c = (char *) mxmlElementGetAttrName(tree, cwmp_urn);
+		if (c && *(c + 5) == ':') {
+			ns.cwmp = strdup((c + 6));
+			break;
+		}
 	}
 
 done:
@@ -73,40 +88,8 @@ done:
 int8_t
 xml_init(void)
 {
-	FC_DEVEL_DEBUG("enter");
-	char *c;
-	int8_t status;
-
-	c = "http://schemas.xmlsoap.org/soap/envelope/";
-	ns.soap_env_url = strdup(c);
-
-	c = "http://schemas.xmlsoap.org/soap/encoding/";
-	ns.soap_enc_url = strdup(c);
-	
-	c = "http://www.w3.org/2001/XMLSchema";
-	ns.xsd_url = strdup(c);
-
-	c = "http://www.w3.org/2001/XMLSchema-instance";
-	ns.xsi_url = strdup(c);
-	
-	/* TODO: this works on ACS HDM, might want to chage for other ACS servers */
-	c = "urn:dslforum-org:cwmp-1-2";
-	ns.cwmp_url = strdup(c);
-
-	status = FC_SUCCESS;
-	goto done;
-
-error:
-#ifdef DEBUG
-	if (errno == ENOMEM) {
-		perror(__func__);
-	}
-#endif
-	status = FC_ERROR;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	FC_DEVEL_DEBUG("enter & exit");
+	return FC_SUCCESS;
 }
 
 int8_t
@@ -114,41 +97,21 @@ xml_exit(void)
 {
 	FC_DEVEL_DEBUG("enter");
 	
-	if (ns.soap_env_url) {
-		free(ns.soap_env_url);
-		ns.soap_env_url = NULL;
-	}
 	if (ns.soap_env) {
 		free(ns.soap_env);
 		ns.soap_env = NULL;
-	}
-	if (ns.soap_enc_url) {
-		free(ns.soap_enc_url);
-		ns.soap_enc_url = NULL;
 	}
 	if (ns.soap_enc) {
 		free(ns.soap_enc);
 		ns.soap_enc = NULL;
 	}
-	if (ns.xsd_url) {
-		free(ns.xsd_url);
-		ns.xsd_url = NULL;
-	}
 	if (ns.xsd) {
 		free(ns.xsd);
 		ns.xsd = NULL;
 	}
-	if (ns.xsi_url) {
-		free(ns.xsi_url);
-		ns.xsi_url = NULL;
-	}
 	if (ns.xsi) {
 		free(ns.xsi);
 		ns.xsi = NULL;
-	}
-	if (ns.cwmp_url) {
-		free(ns.cwmp_url);
-		ns.cwmp_url = NULL;
 	}
 	if (ns.cwmp) {
 		free(ns.cwmp);
@@ -262,7 +225,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = mxmlFindElementText(tree, tree, "InternetGatewayDevice.DeviceInfo.SerialNumber", MXML_DESCEND);
 	if (!busy_node)
 		goto error;
-        busy_node = busy_node->parent->next->next;
+	busy_node = busy_node->parent->next->next;
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
 	c = device_get_serial_number(); c = c ? c : "";
@@ -273,7 +236,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = mxmlFindElementText(tree, tree, "InternetGatewayDevice.DeviceInfo.HardwareVersion", MXML_DESCEND);
 	if (!busy_node)
 		goto error;
-        busy_node = busy_node->parent->next->next;
+	busy_node = busy_node->parent->next->next;
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
 	c = device_get_hardware_version(); c = c ? c : "";
@@ -285,7 +248,7 @@ xml_prepare_inform_message(char **msg_out)
 	if (!busy_node)
 		goto error;
 	busy_node = busy_node->parent->next->next;
-        if (mxmlGetType(busy_node) != MXML_ELEMENT)
+	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
 	c = device_get_software_version(); c = c ? c : "";
 	busy_node = mxmlNewText(busy_node, 0, c);
@@ -295,7 +258,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = mxmlFindElementText(tree, tree, "InternetGatewayDevice.DeviceInfo.ProvisioningCode", MXML_DESCEND);
 	if (!busy_node)
 		goto error;
-        busy_node = busy_node->parent->next->next;
+	busy_node = busy_node->parent->next->next;
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
 	c = device_get_provisioning_code();
@@ -309,7 +272,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = mxmlFindElementText(tree, tree, tmp, MXML_DESCEND);
 	if (!busy_node)
 		goto error;
-        busy_node = busy_node->parent->next->next;
+	busy_node = busy_node->parent->next->next;
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
 	c = NULL;
@@ -327,7 +290,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = mxmlFindElementText(tree, tree, tmp, MXML_DESCEND);
 	if (!busy_node)
 		goto error;
-        busy_node = busy_node->parent->next->next;
+	busy_node = busy_node->parent->next->next;
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
 	c = NULL;
@@ -418,7 +381,7 @@ error:
 		perror(__func__);
 	}
 #endif
-        status = FC_ERROR;
+	status = FC_ERROR;
 
 done:
 	mxmlDelete(tree);
@@ -442,7 +405,7 @@ xml_handle_message(char *msg_in, char **msg_out)
 	FILE *fp;
 	fp = fopen("./ext/soap_msg_templates/cwmp_response_message.xml", "r");
 	tree_out = mxmlLoadFile(NULL, fp, MXML_NO_CALLBACK);
-	fclose(fp);                             
+	fclose(fp);
 #else
 	tree_out = mxmlLoadString(NULL, CWMP_RESPONSE_MESSAGE, MXML_NO_CALLBACK);
 #endif
@@ -452,7 +415,7 @@ xml_handle_message(char *msg_in, char **msg_out)
 	xml_recreate_namespace(msg_in);
 
 	tree_in = mxmlLoadString(NULL, msg_in, MXML_NO_CALLBACK);
-	if (!tree_in)                                      
+	if (!tree_in)
 		goto error;
 
 	/* handle cwmp:ID */
