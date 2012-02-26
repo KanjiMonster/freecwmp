@@ -16,10 +16,8 @@
 
 #ifndef HTTP_ZSTREAM
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <ctype.h>
 
 static const unsigned char b64encode_tbl[] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
