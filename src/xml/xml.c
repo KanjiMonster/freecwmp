@@ -33,8 +33,9 @@ xml_recreate_namespace(char *msg)
 	FC_DEVEL_DEBUG("enter");
 
 	mxml_node_t *tree;
-	char *c, *cwmp_urn;
+	char *c;
 	uint8_t i;
+	const char *cwmp_urn;
 
 	if (ns.soap_env)
 		free(ns.soap_env);
