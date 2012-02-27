@@ -176,6 +176,29 @@ section_found:
 			goto next;
 		}
 
+#ifdef HTTP_CURL
+		/* ssl_cert */
+		status = strcmp((uci_to_option(e))->e.name, "ssl_cert");
+		if (status == FC_SUCCESS) {
+			acs_set_ssl_cert((uci_to_option(e))->v.string);
+			goto next;
+		}
+
+		/* ssl_cacert */
+		status = strcmp((uci_to_option(e))->e.name, "ssl_cacert");
+		if (status == FC_SUCCESS) {
+			acs_set_ssl_cacert((uci_to_option(e))->v.string);
+			goto next;
+		}
+
+		/* ssl_verify */
+		status = strcmp((uci_to_option(e))->e.name, "ssl_verify");
+		if (status == FC_SUCCESS) {
+			acs_set_ssl_verify((uci_to_option(e))->v.string);
+			goto next;
+		}
+#endif /* HTTP_CURL */
+
 next:
 		;
 	}

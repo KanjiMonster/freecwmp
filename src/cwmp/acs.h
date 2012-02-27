@@ -19,6 +19,11 @@ struct acs
 	char *hostname;
 	uint16_t port;
 	char *path;
+#ifdef HTTP_CURL
+	char *ssl_cert;
+	char *ssl_cacert;
+	uint8_t ssl_verify;
+#endif /* HTTP_CURL */
 };
 
 void acs_init();
@@ -34,6 +39,14 @@ uint16_t acs_get_port(void);
 void acs_set_port(char *c);
 char * acs_get_path(void);
 void acs_set_path(char *c);
+#ifdef HTTP_CURL
+char * acs_get_ssl_cert(void);
+void acs_set_ssl_cert(char *c);
+char * acs_get_ssl_cacert(void);
+void acs_set_ssl_cacert(char *c);
+uint8_t acs_get_ssl_verify(void);
+void acs_set_ssl_verify(char *c);
+#endif /* HTTP_CURL */
 
 #endif
 

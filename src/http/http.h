@@ -31,10 +31,10 @@ struct http_client
 {
 #ifdef HTTP_CURL
 	struct curl_slist *header_list;
-#endif
+#endif /* HTTP_CURL */
 #ifdef HTTP_ZSTREAM
 	zstream_t *stream;
-#endif
+#endif /* HTTP_ZSTREAM */
 	char *url;
 };
 
@@ -45,7 +45,7 @@ struct http_server
 
 #ifdef HTTP_CURL
 static uint64_t http_get_response(void *buffer, size_t size, size_t rxed, char **msg_in);
-#endif
+#endif /* HTTP_CURL */
 
 int8_t http_client_init(void);
 int8_t http_client_exit(void);

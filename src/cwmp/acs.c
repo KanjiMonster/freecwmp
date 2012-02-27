@@ -26,6 +26,11 @@ acs_init()
 	acs.hostname = NULL;
 	acs.port = 0;
 	acs.path = NULL;
+#ifdef HTTP_CURL
+	acs.ssl_cert = NULL;
+	acs.ssl_cacert = NULL;
+	acs.ssl_verify = 1;
+#endif /* HTTP_CURL */
 
 	FC_DEVEL_DEBUG("exit");
 }
@@ -48,6 +53,13 @@ acs_clean()
 	acs.port = 0;
 	if (acs.path) free(acs.path);
 	acs.path = NULL;
+#ifdef HTTP_CURL
+	if (acs.ssl_cert) free(acs.ssl_cert);
+	acs.ssl_cert = NULL;
+	if (acs.ssl_cacert) free(acs.ssl_cacert);
+	acs.ssl_cacert = NULL;
+	acs.ssl_verify = 1;
+#endif /* HTTP_CURL */
 
 	FC_DEVEL_DEBUG("exit");
 }
@@ -163,4 +175,65 @@ acs_set_path(char *c)
 
 	FC_DEVEL_DEBUG("exit");
 }
+
+#ifdef HTTP_CURL
+char *
+acs_get_ssl_cert(void)
+{
+	FC_DEVEL_DEBUG("enter & exit");
+	return acs.ssl_cert;
+}
+
+void
+acs_set_ssl_cert(char *c)
+{
+	FC_DEVEL_DEBUG("enter");
+
+	if (acs.ssl_cert)
+		free(acs.ssl_cert);
+	acs.ssl_cert = strdup(c);
+
+	FC_DEVEL_DEBUG("exit");
+}
+
+char *
+acs_get_ssl_cacert(void)
+{
+	FC_DEVEL_DEBUG("enter & exit");
+	return acs.ssl_cacert;
+}
+
+void
+acs_set_ssl_cacert(char *c)
+{
+	FC_DEVEL_DEBUG("enter");
+
+	if (acs.ssl_cacert)
+		free(acs.ssl_cacert);
+	acs.ssl_cacert = strdup(c);
+
+	FC_DEVEL_DEBUG("exit");
+}
+
+uint8_t
+acs_get_ssl_verify(void)
+{
+	FC_DEVEL_DEBUG("enter & exit");
+	return acs.ssl_verify;
+}
+
+void
+acs_set_ssl_verify(char *c)
+{
+	FC_DEVEL_DEBUG("enter");
+
+	if (strcmp(c, "disabled") == 0) {
+		acs.ssl_verify = 0;
+	} else {
+		acs.ssl_verify = 1;
+	}
+
+	FC_DEVEL_DEBUG("exit");
+}
+#endif /* HTTP_CURL */
 

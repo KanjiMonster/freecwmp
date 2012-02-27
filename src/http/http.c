@@ -77,6 +77,14 @@ http_client_init(void)
 #ifdef DEBUG
 	printf("+++ HTTP CLIENT CONFIGURATION +++\n");
 	printf("URL: '%s'\n", http_c.url);
+# ifdef HTTP_CURL
+	if (acs_get_ssl_cert())
+		printf("ssl_cert: '%s\n", acs_get_ssl_cert());
+	if (acs_get_ssl_cacert())
+		printf("ssl_cacert: '%s\n", acs_get_ssl_cacert());
+	if (!acs_get_ssl_verify())
+		printf("ssl_verify: SSL certificate validation disabled.\n");
+# endif /* HTTP_CURL */
 	printf("--- HTTP CLIENT CONFIGURATION ---\n");
 #endif
 
@@ -220,6 +228,14 @@ http_send_message(char *msg_out, char **msg_in)
 
 	curl_easy_setopt(curl, CURLOPT_COOKIEFILE, fc_cookies);
 	curl_easy_setopt(curl, CURLOPT_COOKIEJAR, fc_cookies);
+
+	/* TODO: test this with real ACS configuration */
+	if (acs_get_ssl_cert())
+		curl_easy_setopt(curl, CURLOPT_SSLCERT, acs_get_ssl_cert());
+	if (acs_get_ssl_cacert())
+		curl_easy_setopt(curl, CURLOPT_CAINFO, acs_get_ssl_cacert());
+	if (!acs_get_ssl_verify())
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
 
 	*msg_in = (char *) calloc (1, sizeof(char));
 
