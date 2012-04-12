@@ -60,22 +60,19 @@ external_get_parameter(char *name, char **value)
 
 	if (uproc.pid == 0) {
 		/* child */
-		dup2(pfds[1], 0);
-		dup2(pfds[1], 1);
-		dup2(pfds[1], 2);
-
-		close(pfds[0]);
-		close(pfds[1]);
-
 		const char *argv[7];
 		int i = 0;
-		argv[i++] = "sh";
+		argv[i++] = "/bin/sh";
 		argv[i++] = fc_script;
 		argv[i++] = "--newline";
 		argv[i++] = "--value";
 		argv[i++] = "get";
 		argv[i++] = name;
 		argv[i++] = NULL;
+
+		close(pfds[0]);
+		dup2(pfds[1], 1);
+		close(pfds[1]);
 
 		execvp(argv[0], (char **) argv);
 		exit(ESRCH);
@@ -85,7 +82,9 @@ external_get_parameter(char *name, char **value)
 	}
 
 	/* parent code */
-	close (pfds[1]);
+	close(pfds[1]);
+	dup2(pfds[0], 0);
+	close(pfds[0]);
 
 	while (wait(&status) != uproc.pid) {
 		FC_DEVEL_DEBUG("waiting for child to exit");
@@ -139,7 +138,7 @@ external_set_parameter(char *name, char *value)
 
 		const char *argv[6];
 		int i = 0;
-		argv[i++] = "sh";
+		argv[i++] = "/bin/sh";
 		argv[i++] = fc_script;
 		argv[i++] = "set";
 		argv[i++] = name;
@@ -187,7 +186,7 @@ external_simple(char *arg)
 
 		const char *argv[4];
 		int i = 0;
-		argv[i++] = "sh";
+		argv[i++] = "/bin/sh";
 		argv[i++] = fc_script;
 		argv[i++] = arg;
 		argv[i++] = NULL;
@@ -234,7 +233,7 @@ external_download(char *url, char *size)
 
 		const char *argv[8];
 		int i = 0;
-		argv[i++] = "sh";
+		argv[i++] = "/bin/sh";
 		argv[i++] = fc_script;
 		argv[i++] = "download";
 		argv[i++] = "--url";
