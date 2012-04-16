@@ -247,6 +247,10 @@ http_send_message(char *msg_out, char **msg_in)
 	}
 
 	curl_easy_cleanup(curl);
+	
+	if (res)
+		goto error;
+
 #endif /* HTTP_CURL */
 
 #ifdef HTTP_ZSTREAM
