@@ -40,11 +40,12 @@ static struct cwmp
 	int8_t acs_connection_required;
 } cwmp;
 
+static void cwmp_periodic_inform(struct uloop_timeout *);
+
 int8_t cwmp_init(void);
 int8_t cwmp_exit(void);
 int8_t cwmp_reload_http_client(void);
 int8_t cwmp_reload_xml(void);
-int8_t cwmp_periodic_inform(void);
 int8_t cwmp_inform(void);
 int8_t cwmp_handle_messages(void);
 int8_t cwmp_connection_request(void);

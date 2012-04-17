@@ -182,8 +182,8 @@ done:
 }
 
 
-int8_t
-cwmp_periodic_inform(void)
+static void
+cwmp_periodic_inform(struct uloop_timeout *timeout)
 {
 	FC_DEVEL_DEBUG("enter & exit");
 	if (cwmp.periodic_inform_enabled && cwmp.periodic_inform_interval) {
@@ -193,9 +193,7 @@ cwmp_periodic_inform(void)
 	}
 
 	if (cwmp.periodic_inform_enabled)
-		return cwmp_inform();
-	else
-		return FC_SUCCESS;
+		cwmp_inform();
 }
 
 int8_t
@@ -240,6 +238,14 @@ cwmp_inform(void)
 		goto error_http;
 	}
 	
+	if (!msg_in) {
+		/*
+		 * if ACS has sent empty response we'll skip
+		 * xml_parse_inform_response_message
+		 */
+		goto done_acs;
+	}
+
 	if (msg_out) {
 		free(msg_out);
 		msg_out = NULL;
@@ -257,6 +263,7 @@ cwmp_inform(void)
 		free(msg_in);
 		msg_in = NULL;
 	}
+done_acs:
 	if (msg_out) {
 		free(msg_out);
 		msg_out = NULL;
