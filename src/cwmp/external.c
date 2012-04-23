@@ -140,8 +140,8 @@ external_set_parameter_write(char *name, char *value)
 
 		fprintf(fp, "#!/bin/sh\n");
 
-		if (chmod(fc_script_set_parameters, strtol("0700", 0, 8)) < 0) {
-			status = FC_ERROR;
+		if (chmod(fc_script_set_parameters,
+			  strtol("0700", 0, 8)) < 0) {
 			goto error;
 		}
 	}
