@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <malloc.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <libubox/uloop.h>
 
 #include "../freecwmp.h"
@@ -32,7 +33,7 @@ cancel_child_timeout(struct uloop_process *uproc, int ret)
 	FC_DEVEL_DEBUG("exit");
 }
 
-void
+static void
 kill_child_timeout()
 {
 	FC_DEVEL_DEBUG("enter");
@@ -124,7 +125,48 @@ done:
 }
 
 int8_t
-external_set_parameter(char *name, char *value)
+external_set_parameter_write(char *name, char *value)
+{
+	FC_DEVEL_DEBUG("enter");
+	int8_t status;
+	FILE *fp;
+
+	if (access(fc_script_set_parameters, R_OK | W_OK | X_OK) != -1) {
+		fp = fopen(fc_script_set_parameters, "a");
+		if (!fp) return FC_ERROR;
+	} else {
+		fp = fopen(fc_script_set_parameters, "w");
+		if (!fp) return FC_ERROR;
+
+		fprintf(fp, "#!/bin/sh\n");
+
+		if (chmod(fc_script_set_parameters, strtol("0700", 0, 8)) < 0) {
+			status = FC_ERROR;
+			goto error;
+		}
+	}
+
+#ifdef DUMMY_MODE
+	fprintf(fp, "/bin/sh `pwd`/%s set %s %s\n", fc_script, name, value);
+#else
+	fprintf(fp, "/bin/sh %s set %s %s\n", fc_script, name, value);
+#endif
+
+	fclose(fp);
+
+	status = FC_SUCCESS;
+	goto done;
+
+error:
+	status = FC_ERROR;
+
+done:
+	FC_DEVEL_DEBUG("exit");
+	return status;
+}
+
+int8_t
+external_set_parameter_execute()
 {
 	FC_DEVEL_DEBUG("enter");
 	int8_t status;
@@ -136,13 +178,10 @@ external_set_parameter(char *name, char *value)
 	if (uproc.pid == 0) {
 		/* child */
 
-		const char *argv[6];
+		const char *argv[3];
 		int i = 0;
 		argv[i++] = "/bin/sh";
-		argv[i++] = fc_script;
-		argv[i++] = "set";
-		argv[i++] = name;
-		argv[i++] = value;
+		argv[i++] = fc_script_set_parameters;
 		argv[i++] = NULL;
 
 		execvp(argv[0], (char **) argv);
@@ -159,6 +198,9 @@ external_set_parameter(char *name, char *value)
 	}
 
 	// TODO: add some kind of checks
+
+	if (remove(fc_script_set_parameters) != 0)
+		goto error;
 
 	status = FC_SUCCESS;
 	goto done;

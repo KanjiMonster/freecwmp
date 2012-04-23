@@ -426,7 +426,7 @@ cwmp_connection_request(void)
 }
 
 int8_t
-cwmp_set_parameter_handler(char *name, char *value)
+cwmp_set_parameter_write_handler(char *name, char *value)
 {
 	FC_DEVEL_DEBUG("enter");
 
@@ -463,17 +463,21 @@ cwmp_set_parameter_handler(char *name, char *value)
 		uloop_timeout_set(&cwmp.periodic_inform_t, cwmp.periodic_inform_interval * 1000);
 	}
 
-	external_set_parameter(name, value);
-
-	// TODO: check for errors
-
-	goto done_ok;
-
-done_ok:
-	status = FC_SUCCESS;
-	goto done;
+	status = external_set_parameter_write(name, value);
 
 done:
+	FC_DEVEL_DEBUG("exit");
+	return status;
+}
+
+int8_t
+cwmp_set_parameter_execute_handler()
+{
+	FC_DEVEL_DEBUG("enter");
+	int8_t status;
+
+	status = external_set_parameter_execute();
+
 	FC_DEVEL_DEBUG("exit");
 	return status;
 }

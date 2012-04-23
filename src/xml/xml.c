@@ -473,7 +473,7 @@ set_parameter:
 			parameter_value = busy_node->value.text.string;
 		}
 		if (parameter_name && parameter_value) {
-			status = cwmp_set_parameter_handler(parameter_name, parameter_value);
+			status = cwmp_set_parameter_write_handler(parameter_name, parameter_value);
 			if (status != FC_SUCCESS)
 				goto error_set_parameter;
 			parameter_name = NULL;
@@ -481,6 +481,10 @@ set_parameter:
 		}
 		busy_node = mxmlWalkNext(busy_node, node, MXML_DESCEND);
 	}
+
+	status = cwmp_set_parameter_execute_handler();
+	if (status != FC_SUCCESS)
+		goto error_set_parameter;
 
 	if (node) {
 		status = cwmp_reload_changes();
