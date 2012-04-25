@@ -4,7 +4,7 @@
  *	the Free Software Foundation, either version 2 of the License, or
  *	(at your option) any later version.
  *
- *	Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
+ *	Copyright (C) 2011-2012 Luka Perkov <freecwmp@lukaperkov.net>
  */
 
 #include <stdlib.h>
@@ -24,7 +24,7 @@ local_init()
 	FC_DEVEL_DEBUG("enter");
 
 	local.ip = NULL;
-	local.wait_source = 0;
+	local.interface = NULL;
 	local.port = 0;
 	local.event = 0;
 
@@ -38,44 +38,29 @@ local_clean()
 
 	if (local.ip) free(local.ip);
 	local.ip = NULL;
-	local.wait_source = 0;
+	if (local.interface) free(local.interface);
+	local.interface = NULL;
 	local.port = 0;
 	local.event = 0;
 
 	FC_DEVEL_DEBUG("exit");
 }
 
+char *
+local_get_interface(void)
+{
+	FC_DEVEL_DEBUG("enter & exit");
+	return local.interface;
+}
+
 void
-local_set_source(char *c)
+local_set_interface(char *c)
 {
 	FC_DEVEL_DEBUG("enter");
 
-	struct sockaddr_in sa;
+	if (local.interface) free(local.interface);
+	local.interface = strdup(c);
 
-	if (local.ip) {
-		free(local.ip);
-		local.ip = NULL;
-	}
-
-	if (inet_pton(AF_INET, c, &(sa.sin_addr))) {
-		local.ip = strdup(c);
-		goto done;
-	}
-
-	/* find ip out of interface name */
-	struct ifreq ifr;
-	int fd, status;
-
-	fd = socket(AF_INET, SOCK_DGRAM, 0);
-	ifr.ifr_addr.sa_family = AF_INET;
-	strncpy(ifr.ifr_name, c, IFNAMSIZ - 1);
-	status = ioctl(fd, SIOCGIFADDR, &ifr);
-	close(fd);
-
-	if (!status)
-		local.ip = strdup(inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
-
-done:
 	FC_DEVEL_DEBUG("exit");
 }
 
@@ -86,19 +71,13 @@ local_get_ip(void)
 	return local.ip;
 }
 
-uint8_t
-local_get_wait_source(void)
-{
-	FC_DEVEL_DEBUG("enter & exit");
-	return local.wait_source;
-}
-
 void
-local_set_wait_source(char *c)
+local_set_ip(char *c)
 {
 	FC_DEVEL_DEBUG("enter");
 
-	local.wait_source = atoi(c);
+	if (local.ip) free(local.ip);
+	local.ip = strdup(c);
 
 	FC_DEVEL_DEBUG("exit");
 }

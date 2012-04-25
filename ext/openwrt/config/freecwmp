@@ -1,6 +1,5 @@
 config local
-	option source eth0
-	option wait_source 1
+	option interface eth0
 	option port 7547
 	option event bootstrap
 

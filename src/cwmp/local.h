@@ -4,7 +4,7 @@
  *	the Free Software Foundation, either version 2 of the License, or
  *	(at your option) any later version.
  *
- *	Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
+ *	Copyright (C) 2011-2012 Luka Perkov <freecwmp@lukaperkov.net>
  */
 
 #ifndef _FREECWMP_LOCAL_H__
@@ -14,7 +14,7 @@
 struct local
 {
 	char *ip;
-	uint8_t wait_source;
+	char *interface;
 	uint16_t port;
 	uint8_t event;
 };
@@ -22,9 +22,9 @@ struct local
 void local_init();
 void local_clean();
 char * local_get_ip(void);
-void local_set_source(char *c);
-uint8_t local_get_wait_source(void);
-void local_set_wait_source(char *c);
+void local_set_ip(char *c);
+char * local_get_interface(void);
+void local_set_interface(char *c);
 uint16_t local_get_port(void);
 void local_set_port(char *c);
 uint8_t local_get_event(void);

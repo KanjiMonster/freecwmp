@@ -39,18 +39,11 @@ section_found:
 
 	status = FC_SUCCESS;
 	uci_foreach_element(&s->options, e) {
-		/* source */
-		status = strcmp((uci_to_option(e))->e.name, "source");
+		/* interface */
+		status = strcmp((uci_to_option(e))->e.name, "interface");
 		if (status == FC_SUCCESS) {
-			local_set_source((uci_to_option(e))->v.string);
+			local_set_interface((uci_to_option(e))->v.string);
 			n++;
-			goto next;
-		}
-
-		/* wait_source */
-		status = strcmp((uci_to_option(e))->e.name, "wait_source");
-		if (status == FC_SUCCESS) {
-			local_set_wait_source((uci_to_option(e))->v.string);
 			goto next;
 		}
 
@@ -230,11 +223,9 @@ config_refresh_acs(void)
 
 	acs_clean();
 	status = config_reload();
-	if (status != FC_SUCCESS)
-		goto error;
+	if (status != FC_SUCCESS) goto error;
 	status = config_init_acs();
-	if (status != FC_SUCCESS)
-		goto error;
+	if (status != FC_SUCCESS) goto error;
 
 	status = FC_SUCCESS;
 	goto done;
@@ -305,11 +296,9 @@ config_refresh_device(void)
 
 	device_clean();
 	status = config_reload();
-	if (status != FC_SUCCESS)
-		goto error;
+	if (status != FC_SUCCESS) goto error;
 	status = config_init_device();
-	if (status != FC_SUCCESS)
-		goto error;
+	if (status != FC_SUCCESS) goto error;
 
 	status = FC_SUCCESS;
 	goto done;
@@ -362,11 +351,12 @@ config_reload(void)
 
 	int8_t status;
 
-	uci_free_context(uci_ctx);
-	uci_ctx = NULL;
+	if (!uci_ctx) {
+		uci_free_context(uci_ctx);
+		uci_ctx = NULL;
+	}
 	uci_freecwmp = config_init_package("freecwmp");
-	if (!uci_freecwmp)
-		goto error;
+	if (!uci_freecwmp) goto error;
 
 	status = FC_SUCCESS;
 	goto done;
@@ -389,18 +379,14 @@ config_init_all(void)
 
 	uci_ctx = NULL;
 	uci_freecwmp = config_init_package("freecwmp");
-	if (!uci_freecwmp)
-		goto error;
+	if (!uci_freecwmp) goto error;
 
 	status = config_init_local();
-	if (status != FC_SUCCESS)
-		goto error;
+	if (status != FC_SUCCESS) goto error;
 	status = config_init_acs();
-	if (status != FC_SUCCESS)
-		goto error;
+	if (status != FC_SUCCESS) goto error;
 	status = config_init_device();
-	if (status != FC_SUCCESS)
-		goto error;
+	if (status != FC_SUCCESS) goto error;
 
 	status = FC_SUCCESS;
 	goto done;

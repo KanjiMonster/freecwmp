@@ -140,7 +140,6 @@ int8_t
 http_client_exit(void)
 {
 	FC_DEVEL_DEBUG("enter");
-	int8_t status;
 
 	if (http_c.url) {
 		free(http_c.url);
@@ -148,10 +147,10 @@ http_client_exit(void)
 	}
 
 #ifdef HTTP_CURL
-	curl_slist_free_all(http_c.header_list);
-	status = remove(fc_cookies);
-	if (status)
-		goto error;
+	if (!http_c.header_list)
+		curl_slist_free_all(http_c.header_list);
+	if (access(fc_cookies, W_OK) == 0)
+		remove(fc_cookies);
 #endif /* HTTP_CURL */
 
 #ifdef HTTP_ZSTREAM
@@ -160,15 +159,6 @@ http_client_exit(void)
 		http_c.stream = NULL;
 	}
 #endif /* HTTP_ZSTREAM */
-
-	status = FC_SUCCESS;
-	goto done;
-
-error:
-#ifdef DEBUG
-	perror("http_client_exit error");
-#endif
-	status = FC_ERROR;
 
 done:
 	FC_DEVEL_DEBUG("exit");
