@@ -46,10 +46,11 @@ AC_ARG_WITH([libubox-include-path],
     [location of the libubox library headers, defaults to /usr/include])],
   [LIBUBOX_CFLAGS="-I$withval"],
   [LIBUBOX_CFLAGS='-I/usr/include'])
-AC_SUBST([LIBUCI_CFLAGS])
+AC_SUBST([LIBUBOX_CFLAGS])
 
 AC_ARG_WITH([libubox-lib-path],
-  [AS_HELP_STRING([--with-libubox-lib-path], [location of the libubox library])] [LIBUBOX_LDFLAGS="-L$withval"])
+  [AS_HELP_STRING([--with-libubox-lib-path], [location of the libubox library])], [LIBUBOX_LDFLAGS="-L$withval"])
+AC_SUBST([LIBUBOX_LDFLAGS])
 
 LIBUBOX_LIBS='-lubox'
 AC_SUBST([LIBUBOX_LIBS])
