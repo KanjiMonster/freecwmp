@@ -14,6 +14,7 @@
 #include <malloc.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <libubox/uloop.h>
 
 #include "../freecwmp.h"
@@ -49,7 +50,7 @@ external_get_parameter(char *name, char **value)
 {
 	FC_DEVEL_DEBUG("enter");
 
-	int8_t status;
+	int status;
 
 	int pfds[2];
 	if (pipe(pfds) < 0)
@@ -121,14 +122,14 @@ error:
 
 done:
 	FC_DEVEL_DEBUG("exit");
-	return status;
+	return (int8_t) status;
 }
 
 int8_t
 external_set_parameter_write(char *name, char *value)
 {
 	FC_DEVEL_DEBUG("enter");
-	int8_t status;
+	int status;
 	FILE *fp;
 
 	if (access(fc_script_set_parameters, R_OK | W_OK | X_OK) != -1) {
@@ -162,14 +163,14 @@ error:
 
 done:
 	FC_DEVEL_DEBUG("exit");
-	return status;
+	return (int8_t) status;
 }
 
 int8_t
 external_set_parameter_execute()
 {
 	FC_DEVEL_DEBUG("enter");
-	int8_t status;
+	int status;
 
 	if ((uproc.pid = fork()) == -1) {
 		goto error;
@@ -210,14 +211,14 @@ error:
 
 done:
 	FC_DEVEL_DEBUG("exit");
-	return status;
+	return (int8_t) status;
 }
 
 int8_t
 external_simple(char *arg)
 {
 	FC_DEVEL_DEBUG("enter");
-	int8_t status;
+	int status;
 
 	if ((uproc.pid = fork()) == -1) {
 		goto error;
@@ -264,7 +265,7 @@ external_download(char *url, char *size)
 {
 	FC_DEVEL_DEBUG("enter");
 
-	int8_t status;
+	int status;
 
 	if ((uproc.pid = fork()) == -1) {
 		goto error;
