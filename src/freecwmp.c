@@ -284,8 +284,10 @@ int main (int argc, char **argv)
 		}
 
 		close(STDIN_FILENO);
+#ifndef DEVEL_DEBUG
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
+#endif
 	}
 
 	uloop_run();
