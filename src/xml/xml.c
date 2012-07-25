@@ -401,7 +401,71 @@ done:
 	return status;
 }
 
+int8_t
+xml_handle_set_parameter_values(mxml_node_t *body_in, mxml_node_t *tree_in,
+				mxml_node_t *tree_out)
+{
+	mxml_node_t *busy_node = body_in;
+	char *parameter_name = NULL;
+	char *parameter_value = NULL;
+	uint8_t status;
+	int8_t ret = FC_ERROR;
+
+	FC_DEVEL_DEBUG("enter");
+
+	while (busy_node != NULL) {
+		if (busy_node &&
+		    busy_node->type == MXML_TEXT &&
+		    busy_node->value.text.string &&
+		    busy_node->parent->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->parent->value.element.name, "Name")) {
+			parameter_name = busy_node->value.text.string;
+		}
+		if (busy_node &&
+		    busy_node->type == MXML_TEXT &&
+		    busy_node->value.text.string &&
+		    busy_node->parent->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->parent->value.element.name, "Value")) {
+			parameter_value = busy_node->value.text.string;
+		}
+		if (parameter_name && parameter_value) {
+			status = cwmp_set_parameter_write_handler(parameter_name, parameter_value);
+			if (status != FC_SUCCESS)
+				return -1;
+			parameter_name = NULL;
+			parameter_value = NULL;
+		}
+		busy_node = mxmlWalkNext(busy_node, body_in, MXML_DESCEND);
+	}
+
+	status = cwmp_set_action_execute_handler();
+	if (status != FC_SUCCESS)
+		goto out;
+
+	status = cwmp_reload_changes();
+
+	busy_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL,
+				    NULL, MXML_DESCEND);
+	if (!busy_node)
+		goto out;
+	busy_node = mxmlNewElement(busy_node, "cwmp:SetParameterValuesResponse");
+	if (!busy_node)
+		goto out;
+	busy_node = mxmlNewElement(busy_node, "Status");
+	if (!busy_node)
+		goto out;
+	busy_node = mxmlNewText(busy_node, 0, "1");
+	if (!busy_node)
+		goto out;
+
+	ret = FC_SUCCESS;
+out:
+	FC_DEVEL_DEBUG("exit");
+	return ret;
+}
+
 const struct rpc_method rpc_methods[] = {
+	{ "SetParameterValues", xml_handle_set_parameter_values },
 };
 
 int8_t
@@ -506,54 +570,6 @@ find_method:
 			goto error;
 
 		goto create_msg;
-	}
-
-set_parameter:
-	/* handle cwmp:SetParameterValues */
-	len = snprintf(NULL, 0, "%s:%s", ns.cwmp, "SetParameterValues");
-	c = (char *) calloc((len + 1), sizeof(char));
-	if (!c)
-		goto error;
-	snprintf(c, (len + 1), "%s:%s\0", ns.cwmp, "SetParameterValues");
-	node = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
-	free(c); c = NULL;
-	if (!node)
-		goto get_parameter;
-	busy_node = node;
-	parameter_name = NULL;
-	parameter_value = NULL;
-	while (busy_node != NULL) {
-		if (busy_node &&
-		    busy_node->type == MXML_TEXT &&
-		    busy_node->value.text.string &&
-		    busy_node->parent->type == MXML_ELEMENT &&
-		    !strcmp(busy_node->parent->value.element.name, "Name")) {
-			parameter_name = busy_node->value.text.string;
-		}
-		if (busy_node &&
-		    busy_node->type == MXML_TEXT &&
-		    busy_node->value.text.string &&
-		    busy_node->parent->type == MXML_ELEMENT &&
-		    !strcmp(busy_node->parent->value.element.name, "Value")) {
-			parameter_value = busy_node->value.text.string;
-		}
-		if (parameter_name && parameter_value) {
-			status = cwmp_set_parameter_write_handler(parameter_name, parameter_value);
-			if (status != FC_SUCCESS)
-				goto error_set_parameter;
-			parameter_name = NULL;
-			parameter_value = NULL;
-		}
-		busy_node = mxmlWalkNext(busy_node, node, MXML_DESCEND);
-	}
-
-	status = cwmp_set_action_execute_handler();
-	if (status != FC_SUCCESS)
-		goto error_set_parameter;
-
-	if (node) {
-		status = cwmp_reload_changes();
-		goto done_set_parameter;
 	}
 
 get_parameter:
@@ -838,8 +854,6 @@ reboot:
 
 error_set_notification:
 	// TODO: just create a message
-error_set_parameter:
-	// TODO: just create a message
 error_get_parameter:
 error_download:
 error_factory_reset:
@@ -851,21 +865,6 @@ done_set_notification:
 	if (!busy_node)
 		goto error;
 	busy_node = mxmlNewElement(busy_node, "cwmp:SetParameterAttributesResponse");
-	if (!busy_node)
-		goto error;
-	goto create_msg;
-
-done_set_parameter:
-	busy_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
-	if (!busy_node)
-		goto error;
-	busy_node = mxmlNewElement(busy_node, "cwmp:SetParameterValuesResponse");
-	if (!busy_node)
-		goto error;
-	busy_node = mxmlNewElement(busy_node, "Status");
-	if (!busy_node)
-		goto error;
-	busy_node = mxmlNewText(busy_node, 0, "1");
 	if (!busy_node)
 		goto error;
 	goto create_msg;
