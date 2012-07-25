@@ -464,8 +464,111 @@ out:
 	return ret;
 }
 
+int8_t
+xml_handle_get_parameter_values(mxml_node_t *body_in, mxml_node_t *tree_in,
+				mxml_node_t *tree_out)
+{
+	mxml_node_t *busy_node = body_in;
+	mxml_node_t *tmp_node;
+	char *c;
+	char *parameter_name = NULL;
+	char *parameter_value = NULL;
+	uint8_t status, len;
+	int8_t ret = FC_ERROR;
+	uint16_t att_cnt;
+
+	FC_DEVEL_DEBUG("enter");
+
+	tmp_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
+	if (!tmp_node)
+		goto out;
+	tmp_node = mxmlNewElement(tmp_node, "cwmp:GetParameterValuesResponse");
+	if (!tmp_node)
+		goto out;
+	tmp_node = mxmlNewElement(tmp_node, "ParameterList");
+	if (!tmp_node)
+		goto out;
+#ifdef ACS_MULTI
+	mxmlElementSetAttr(tmp_node, "xsi:type", "soap_enc:Array");
+#endif
+	att_cnt = 0;
+	while (busy_node != NULL) {
+		if (busy_node &&
+		    busy_node->type == MXML_TEXT &&
+		    busy_node->value.text.string &&
+		    busy_node->parent->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->parent->value.element.name, "string")) {
+			parameter_name = busy_node->value.text.string;
+		}
+		if (parameter_name) {
+			status = cwmp_get_parameter_handler(parameter_name, &parameter_value);
+			if (status != FC_SUCCESS)
+				goto out;
+			att_cnt++;
+			tmp_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
+			if (!tmp_node)
+				goto out;
+			// TODO: check with other ACS if is needed to add atributes
+			tmp_node = mxmlNewElement(tmp_node, "ParameterValueStruct");
+			if (!tmp_node)
+				goto out;
+			tmp_node = mxmlNewElement(tmp_node, "Name");
+			if (!tmp_node)
+				goto out;
+			tmp_node = mxmlNewText(tmp_node, 0, parameter_name);
+			if (!tmp_node)
+				goto out;
+			tmp_node = tmp_node->parent->parent;
+			tmp_node = mxmlNewElement(tmp_node, "Value");
+			if (!tmp_node)
+				goto out;
+#ifdef ACS_MULTI
+			mxmlElementSetAttr(tmp_node, "xsi:type", "xsd:string");
+#endif
+			tmp_node = mxmlNewText(tmp_node, 0, parameter_value);
+			/*
+			 * three day's work to finally find memory leak if we
+			 * free parameter_name;
+			 * it points to: busy_node->value.text.string
+			 *
+			 * also, parameter_value can be NULL so we don't do checks
+			 */
+
+			parameter_name = NULL;
+		}
+		if (parameter_value) {
+			free(parameter_value);
+			parameter_value = NULL;
+		}
+		busy_node = mxmlWalkNext(busy_node, body_in, MXML_DESCEND);
+	}
+#ifdef ACS_MULTI
+	busy_node = mxmlFindElement(tree_out, tree_out, "ParameterList", NULL, NULL, MXML_DESCEND);
+	if (!busy_node)
+		goto out;
+	len = snprintf(NULL, 0, "cwmp:ParameterValueStruct[%d]\0", att_cnt);
+	c = (char *) calloc((len + 1), sizeof(char));
+	if (!c)
+		goto out;
+	snprintf(c, (len + 1), "cwmp:ParameterValueStruct[%d]\0", att_cnt);
+	mxmlElementSetAttr(busy_node, "soap_enc:arrayType", c);
+	free(c); c = NULL;
+#endif
+
+	ret = FC_SUCCESS;
+out:
+	if (parameter_value) {
+		free(parameter_value);
+		parameter_value = NULL;
+	}
+
+	FC_DEVEL_DEBUG("exit");
+	return ret;
+}
+
 const struct rpc_method rpc_methods[] = {
 	{ "SetParameterValues", xml_handle_set_parameter_values },
+	{ "GetParameterValues", xml_handle_get_parameter_values },
 };
 
 int8_t
@@ -478,7 +581,6 @@ xml_handle_message(char *msg_in, char **msg_out)
 	char *c, *parameter_name, *parameter_value, *parameter_notification,
 		*download_url, *download_size;
 	uint8_t status, len;
-	uint16_t att_cnt;
 	int i;
 	const struct rpc_method *method;
 
@@ -569,99 +671,6 @@ find_method:
 		if (method->handler(node, tree_in, tree_out) != FC_SUCCESS)
 			goto error;
 
-		goto create_msg;
-	}
-
-get_parameter:
-	/* handle cwmp:GetParameterValues */
-	len = snprintf(NULL, 0, "%s:%s", ns.cwmp, "GetParameterValues");
-	c = (char *) calloc((len + 1), sizeof(char));
-	if (!c)
-		goto error;
-	snprintf(c, (len + 1), "%s:%s\0", ns.cwmp, "GetParameterValues");
-	node = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
-	free(c); c = NULL;
-	if (!node)
-		goto set_parameter_attributes;
-	busy_node = node;
-	tmp_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
-	if (!tmp_node)
-		goto error;
-	tmp_node = mxmlNewElement(tmp_node, "cwmp:GetParameterValuesResponse");
-	if (!tmp_node)
-		goto error;
-	tmp_node = mxmlNewElement(tmp_node, "ParameterList");
-	if (!tmp_node)
-		goto error;
-#ifdef ACS_MULTI
-	mxmlElementSetAttr(tmp_node, "xsi:type", "soap_enc:Array");
-#endif
-	att_cnt = 0;
-	parameter_name = NULL;
-	parameter_value = NULL;
-	while (busy_node != NULL) {
-		if (busy_node &&
-		    busy_node->type == MXML_TEXT &&
-		    busy_node->value.text.string &&
-		    busy_node->parent->type == MXML_ELEMENT &&
-		    !strcmp(busy_node->parent->value.element.name, "string")) {
-			parameter_name = busy_node->value.text.string;
-		}
-		if (parameter_name) {
-			status = cwmp_get_parameter_handler(parameter_name, &parameter_value);
-			if (status != FC_SUCCESS)
-				goto error_get_parameter;
-			att_cnt++;
-			tmp_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
-			if (!tmp_node)
-				goto error;
-			// TODO: check with other ACS if is needed to add atributes
-			tmp_node = mxmlNewElement(tmp_node, "ParameterValueStruct");
-			if (!tmp_node)
-				goto error;
-			tmp_node = mxmlNewElement(tmp_node, "Name");
-			if (!tmp_node)
-				goto error;
-			tmp_node = mxmlNewText(tmp_node, 0, parameter_name);
-			if (!tmp_node)
-				goto error;
-			tmp_node = tmp_node->parent->parent;
-			tmp_node = mxmlNewElement(tmp_node, "Value");
-			if (!tmp_node)
-				goto error;
-#ifdef ACS_MULTI
-			mxmlElementSetAttr(tmp_node, "xsi:type", "xsd:string");
-#endif
-			tmp_node = mxmlNewText(tmp_node, 0, parameter_value);
-			/*
-			 * three day's work to finally find memory leak if we
-			 * free parameter_name;
-			 * it points to: busy_node->value.text.string
-			 * 
-			 * also, parameter_value can be NULL so we don't do checks
-			 */
-
-			parameter_name = NULL;
-		}
-		if (parameter_value) {
-			free(parameter_value);
-			parameter_value = NULL;
-		}
-		busy_node = mxmlWalkNext(busy_node, node, MXML_DESCEND);
-	}
-#ifdef ACS_MULTI
-	busy_node = mxmlFindElement(tree_out, tree_out, "ParameterList", NULL, NULL, MXML_DESCEND);
-	if (!busy_node)
-		goto error;
-	len = snprintf(NULL, 0, "cwmp:ParameterValueStruct[%d]\0", att_cnt);
-	c = (char *) calloc((len + 1), sizeof(char));
-	if (!c)
-		goto error;
-	snprintf(c, (len + 1), "cwmp:ParameterValueStruct[%d]\0", att_cnt);
-	mxmlElementSetAttr(busy_node, "soap_enc:arrayType", c);
-	free(c); c = NULL;
-#endif
-	if (node) {
 		goto create_msg;
 	}
 
@@ -854,7 +863,6 @@ reboot:
 
 error_set_notification:
 	// TODO: just create a message
-error_get_parameter:
 error_download:
 error_factory_reset:
 error_reboot:
