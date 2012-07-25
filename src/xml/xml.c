@@ -5,6 +5,8 @@
  *	(at your option) any later version.
  *
  *	Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
+ *	Copyright (C) 2012 Jonas Gorski <jonas.gorski@gmail.com> for T-Labs
+ *			   (Deutsche Telekom Innovation Laboratories)
  */
 
 #include <microxml.h>
@@ -17,6 +19,8 @@
 
 #include "xml.h"
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+
 const static char *soap_env_url = "http://schemas.xmlsoap.org/soap/envelope/";
 const static char *soap_enc_url = "http://schemas.xmlsoap.org/soap/encoding/";
 const static char *xsd_url = "http://www.w3.org/2001/XMLSchema";
@@ -26,6 +30,12 @@ const static char *cwmp_urls[] = {
 		"urn:dslforum-org:cwmp-1-1", 
 		"urn:dslforum-org:cwmp-1-2", 
 		NULL };
+
+struct rpc_method {
+	const char *name;
+	int8_t (*handler)(mxml_node_t *body_in, mxml_node_t *tree_in,
+			  mxml_node_t *tree_out);
+};
 
 static void
 xml_recreate_namespace(char *msg)
@@ -391,6 +401,9 @@ done:
 	return status;
 }
 
+const struct rpc_method rpc_methods[] = {
+};
+
 int8_t
 xml_handle_message(char *msg_in, char **msg_out)
 {
@@ -402,6 +415,8 @@ xml_handle_message(char *msg_in, char **msg_out)
 		*download_url, *download_size;
 	uint8_t status, len;
 	uint16_t att_cnt;
+	int i;
+	const struct rpc_method *method;
 
 #ifdef DUMMY_MODE
 	FILE *fp;
@@ -431,7 +446,7 @@ xml_handle_message(char *msg_in, char **msg_out)
 	free(c); c = NULL;
 	if (!busy_node)
 		/* ACS did not send ID parameter, we are continuing without it */
-		goto set_parameter;
+		goto find_method;
 
 	busy_node = mxmlWalkNext(busy_node, tree_in, MXML_DESCEND_FIRST);
 	if (!busy_node || !busy_node->value.text.string)
@@ -443,6 +458,55 @@ xml_handle_message(char *msg_in, char **msg_out)
 	busy_node = mxmlNewText(busy_node, 0, tmp_node->value.text.string);
 	if (!busy_node)
 		goto error;
+
+find_method:
+	len = snprintf(NULL, 0, "%s:%s", ns.soap_env, "Body");
+	c = (char *) calloc(len + 1, sizeof(char));
+	if (!c)
+		goto error;
+	snprintf(c, len + 1, "%s:%s", ns.soap_env, "Body");
+
+	node = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
+	free(c);
+	if (!node)
+		goto error;
+
+	node = mxmlWalkNext(node, tree_in, MXML_DESCEND_FIRST);
+	if (!node)
+		goto error;
+
+	c = node->value.element.name;
+	if (!c)
+		goto error;
+
+	/* convert QName to locaPart, check that ns is the expected one */
+	if (strchr(c, ':')) {
+		char *tmp = strchr(c, ':');
+		size_t ns_len = tmp - c;
+		if (strlen(ns.cwmp) != ns_len)
+			goto error;
+		if (strncmp(ns.cwmp, c, ns_len))
+			goto error;
+
+		c = tmp + 1;
+	} else {
+		goto error;
+	}
+
+	method = NULL;
+	for (i = 0; i < ARRAY_SIZE(rpc_methods); i++) {
+		if (!strcmp(c, rpc_methods[i].name)) {
+			method = &rpc_methods[i];
+			break;
+		}
+	}
+
+	if (method) {
+		if (method->handler(node, tree_in, tree_out) != FC_SUCCESS)
+			goto error;
+
+		goto create_msg;
+	}
 
 set_parameter:
 	/* handle cwmp:SetParameterValues */
