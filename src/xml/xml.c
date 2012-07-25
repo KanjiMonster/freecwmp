@@ -635,10 +635,86 @@ out:
 	return ret;
 }
 
+int8_t
+xml_handle_download(mxml_node_t *node, mxml_node_t *tree_in,
+		    mxml_node_t *tree_out)
+{
+	mxml_node_t *busy_node, *tmp_node;
+	char *c, *download_url, *download_size;
+	uint8_t status;
+	int8_t ret = FC_ERROR;
+
+	FC_DEVEL_DEBUG("enter");
+
+	busy_node = node;
+	download_url = NULL;
+	download_size = NULL;
+	while (busy_node != NULL) {
+		if (busy_node &&
+		    busy_node->type == MXML_TEXT &&
+		    busy_node->value.text.string &&
+		    busy_node->parent->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->parent->value.element.name, "URL")) {
+			download_url = busy_node->value.text.string;
+		}
+		if (busy_node &&
+		    busy_node->type == MXML_TEXT &&
+		    busy_node->value.text.string &&
+		    busy_node->parent->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->parent->value.element.name, "FileSize")) {
+			download_size = busy_node->value.text.string;
+		}
+		busy_node = mxmlWalkNext(busy_node, node, MXML_DESCEND);
+	}
+	if (!download_url || !download_size)
+		goto out;
+
+	tmp_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
+	if (!tmp_node)
+		goto out;
+
+	tmp_node = mxmlNewElement(tmp_node, "cwmp:DownloadResponse");
+	if (!tmp_node)
+		goto out;
+
+	busy_node = mxmlNewElement(tmp_node, "Status");
+	if (!busy_node)
+		goto out;
+
+	busy_node = mxmlNewElement(tmp_node, "StartTime");
+	if (!busy_node)
+		goto out;
+	busy_node = mxmlNewText(busy_node, 0, mix_get_time());
+	if (!busy_node)
+		goto out;
+
+	busy_node = mxmlFindElement(tmp_node, tree_out, "Status", NULL, NULL, MXML_DESCEND);
+	if (!busy_node)
+		goto out;;
+	status = cwmp_download_handler(download_url, download_size);
+	if (status != FC_SUCCESS)
+		busy_node = mxmlNewText(busy_node, 0, "9000");
+	else
+		busy_node = mxmlNewText(busy_node, 0, "0");
+
+	busy_node = mxmlNewElement(tmp_node, "CompleteTime");
+	if (!busy_node)
+		goto out;
+	busy_node = mxmlNewText(busy_node, 0, mix_get_time());
+	if (!busy_node)
+		goto out;
+
+	ret = FC_SUCCESS;
+out:
+	FC_DEVEL_DEBUG("exit");
+	return ret;
+}
+
 const struct rpc_method rpc_methods[] = {
 	{ "SetParameterValues", xml_handle_set_parameter_values },
 	{ "GetParameterValues", xml_handle_get_parameter_values },
 	{ "SetParameterAttributes", xml_handle_set_parameter_attributes },
+	{ "Download", xml_handle_download },
 };
 
 int8_t
@@ -648,8 +724,7 @@ xml_handle_message(char *msg_in, char **msg_out)
 
 	mxml_node_t *tree_in, *tree_out, *node;
 	mxml_node_t *busy_node, *tmp_node;
-	char *c, *parameter_name, *parameter_value, *parameter_notification,
-		*download_url, *download_size;
+	char *c;
 	uint8_t status, len;
 	int i;
 	const struct rpc_method *method;
@@ -745,79 +820,6 @@ find_method:
 	}
 
 
-download:
-	/* handle cwmp:Download */
-	len = snprintf(NULL, 0, "%s:%s", ns.cwmp, "Download");
-	c = (char *) calloc((len + 1), sizeof(char));
-	if (!c)
-		goto error;
-	snprintf(c, (len + 1), "%s:%s\0", ns.cwmp, "Download");
-	node = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
-	free(c); c = NULL;
-	if (!node)
-		goto factory_reset;
-	busy_node = node;
-	download_url = NULL;
-	download_size = NULL;
-	while (busy_node != NULL) {
-		if (busy_node &&
-		    busy_node->type == MXML_TEXT &&
-		    busy_node->value.text.string &&
-		    busy_node->parent->type == MXML_ELEMENT &&
-		    !strcmp(busy_node->parent->value.element.name, "URL")) {
-			download_url = busy_node->value.text.string;
-		}
-		if (busy_node &&
-		    busy_node->type == MXML_TEXT &&
-		    busy_node->value.text.string &&
-		    busy_node->parent->type == MXML_ELEMENT &&
-		    !strcmp(busy_node->parent->value.element.name, "FileSize")) {
-			download_size = busy_node->value.text.string;
-		}
-		busy_node = mxmlWalkNext(busy_node, node, MXML_DESCEND);
-	}
-	if (!download_url || !download_size)
-		goto error;
-
-	tmp_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
-	if (!tmp_node)
-		goto error;
-
-	tmp_node = mxmlNewElement(tmp_node, "cwmp:DownloadResponse");
-	if (!tmp_node)
-		goto error;
-
-	busy_node = mxmlNewElement(tmp_node, "Status");
-	if (!busy_node)
-		goto error;
-
-	busy_node = mxmlNewElement(tmp_node, "StartTime");
-	if (!busy_node)
-		goto error;
-	busy_node = mxmlNewText(busy_node, 0, mix_get_time());
-	if (!busy_node)
-		goto error;
-
-	busy_node = mxmlFindElement(tmp_node, tree_out, "Status", NULL, NULL, MXML_DESCEND);
-	if (!busy_node)
-		goto error;
-	status = cwmp_download_handler(download_url, download_size);
-	if (status != FC_SUCCESS)
-		busy_node = mxmlNewText(busy_node, 0, "9000");
-	else
-		busy_node = mxmlNewText(busy_node, 0, "0");
-
-	busy_node = mxmlNewElement(tmp_node, "CompleteTime");
-	if (!busy_node)
-		goto error;
-	busy_node = mxmlNewText(busy_node, 0, mix_get_time());
-	if (!busy_node)
-		goto error;
-
-	if (node) {
-		goto create_msg;
-	}
-
 factory_reset:
 	/* handle cwmp:FactoryReset */
 	len = snprintf(NULL, 0, "%s:%s", ns.cwmp, "FactoryReset");
@@ -871,7 +873,6 @@ reboot:
 	}
 
 
-error_download:
 error_factory_reset:
 error_reboot:
 	goto create_msg;
