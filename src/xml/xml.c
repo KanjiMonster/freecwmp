@@ -732,12 +732,35 @@ out:
 	return ret;
 }
 
+int8_t
+xml_handle_reboot(mxml_node_t *node, mxml_node_t *tree_in,
+		  mxml_node_t *tree_out)
+{
+	mxml_node_t *tmp_node;
+	int8_t ret = FC_ERROR;
+
+	FC_DEVEL_DEBUG("enter");
+
+	tmp_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
+	if (!tmp_node)
+		goto out;
+	tmp_node = mxmlNewElement(tmp_node, "cwmp:RebootResponse");
+	if (!tmp_node)
+		goto out;
+
+	ret = cwmp_reboot_handler();
+out:
+	FC_DEVEL_DEBUG("exit");
+	return ret;
+}
+
 const struct rpc_method rpc_methods[] = {
 	{ "SetParameterValues", xml_handle_set_parameter_values },
 	{ "GetParameterValues", xml_handle_get_parameter_values },
 	{ "SetParameterAttributes", xml_handle_set_parameter_attributes },
 	{ "Download", xml_handle_download },
 	{ "FactoryReset", xml_handle_factory_reset },
+	{ "Reboot", xml_handle_reboot },
 };
 
 int8_t
@@ -842,36 +865,7 @@ find_method:
 		goto create_msg;
 	}
 
-
-reboot:
-	/* handle cwmp:Reboot */
-	len = snprintf(NULL, 0, "%s:%s", ns.cwmp, "Reboot");
-	c = (char *) calloc((len + 1), sizeof(char));
-	if (!c)
-		goto error;
-	snprintf(c, (len + 1), "%s:%s\0", ns.cwmp, "Reboot");
-	node = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
-	free(c); c = NULL;
-	if (!node)
-		goto error;
-	tmp_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
-	if (!tmp_node)
-		goto error;
-	tmp_node = mxmlNewElement(tmp_node, "cwmp:RebootResponse");
-	if (!tmp_node)
-		goto error;
-
-	status = cwmp_reboot_handler();
-	if (status != FC_SUCCESS)
-		goto error_reboot;
-
-	if (node) {
-		goto create_msg;
-	}
-
-
-error_reboot:
-	goto create_msg;
+	goto error;
 
 
 create_msg:
