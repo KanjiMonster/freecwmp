@@ -454,8 +454,8 @@ http_new_client(struct uloop_fd *ufd, unsigned events)
 					}
 					snprintf(auth_basic_check, (len + 1), "%s:%s\0", username, password);
 
-					if (strlen(acs_auth_basic) == strlen(auth_basic_check)) {
-						len = strlen(acs_auth_basic);
+					if (size == strlen(auth_basic_check)) {
+						len = size;
 					} else {
 						auth_status = 0;
 						goto free_resources;
