@@ -62,6 +62,7 @@ external_get_parameter(char *name, char **value)
 
 	if (uproc.pid == 0) {
 		/* child */
+
 		const char *argv[7];
 		int i = 0;
 		argv[i++] = "/bin/sh";
@@ -83,10 +84,8 @@ external_get_parameter(char *name, char **value)
 		goto error;
 	}
 
-	/* parent code */
+	/* parent */
 	close(pfds[1]);
-	dup2(pfds[0], 0);
-	close(pfds[0]);
 
 	while (wait(&status) != uproc.pid) {
 		FC_DEVEL_DEBUG("waiting for child to exit");
@@ -192,7 +191,7 @@ external_set_parameter_execute()
 		goto error;
 	}
 
-	/* parent code */
+	/* parent */
 
 	while (wait(&status) != uproc.pid) {
 		FC_DEVEL_DEBUG("waiting for child to exit");
@@ -241,7 +240,7 @@ external_simple(char *arg)
 		goto error;
 	}
 
-	/* parent code */
+	/* parent */
 
 	while (wait(&status) != uproc.pid) {
 		FC_DEVEL_DEBUG("waiting for child to exit");
@@ -292,7 +291,7 @@ external_download(char *url, char *size)
 		goto error;
 	}
 
-	/* parent code */
+	/* parent */
 	int child_status;
 
 	while (wait(&child_status) != uproc.pid) {
