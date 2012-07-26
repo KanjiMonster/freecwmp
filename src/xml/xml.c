@@ -355,10 +355,10 @@ xml_parse_inform_response_message(char *msg_in, char **msg_out)
 	snprintf(soap_env_fault, (len + 1), "%s:%s\0", ns.soap_env, "Fault");
 
 	busy_node = mxmlFindElement(tree, tree, soap_env_fault, NULL, NULL, MXML_DESCEND);
+	free(soap_env_fault);
 	// TODO: ACS responded with error message, right now we are not handeling this
 	if (busy_node)
 		goto error;
-	free(soap_env_fault);
 
 	busy_node = mxmlFindElement(tree, tree, "MaxEnvelopes", NULL, NULL, MXML_DESCEND);
 	if (!busy_node)
