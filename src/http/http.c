@@ -166,7 +166,7 @@ done:
 }
 
 #ifdef HTTP_CURL
-static uint64_t
+static size_t
 http_get_response(void *buffer, size_t size, size_t rxed, char **msg_in)
 {
 	FC_DEVEL_DEBUG("enter");

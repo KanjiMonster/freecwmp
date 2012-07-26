@@ -44,7 +44,7 @@ struct http_server
 };
 
 #ifdef HTTP_CURL
-static uint64_t http_get_response(void *buffer, size_t size, size_t rxed, char **msg_in);
+static size_t http_get_response(void *buffer, size_t size, size_t rxed, char **msg_in);
 #endif /* HTTP_CURL */
 
 int8_t http_client_init(void);
