@@ -26,19 +26,6 @@ enum cwmp_event_code
 	REQUEST_DOWNLOAD, 
 	AUTONOMOUS_TRANSFER_COMPLETE 
 }; 
-											 
-static struct cwmp
-{
-	enum cwmp_event_code event_code;
-	struct uloop_timeout connection_request_t;
-	struct uloop_timeout periodic_inform_t;
-	int8_t periodic_inform_enabled;
-	int64_t periodic_inform_interval;
-	struct uloop_timeout acs_error_t;
-	int8_t retry_count;
-	int8_t acs_reload_required;
-	int8_t acs_connection_required;
-} cwmp;
 
 static void cwmp_periodic_inform(struct uloop_timeout *);
 
