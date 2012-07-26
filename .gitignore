@@ -1,0 +1,41 @@
+#
+# NOTE! Don't add files that are generated in specific
+# subdirectories here. Add them in the ".gitignore" file
+# in that subdirectory instead.
+#
+# Normal rules
+#
+
+*.rej
+*.orig
+*.a
+*.o
+*.su
+*~
+*.swp
+*.patch
+*.bin
+
+#
+# Generated files
+#
+
+/aclocal.m4
+/autom4te.cache/
+/compile
+/configure
+/config.log
+/config.status
+/depcomp
+/install-sh
+/missing
+/Makefile
+/Makefile.in
+
+# stgit generated dirs
+patches-*
+.stgit-edit.txt
+
+# quilt's files
+patches
+series
