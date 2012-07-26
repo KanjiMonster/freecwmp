@@ -282,9 +282,9 @@ xml_prepare_inform_message(char **msg_out)
 		goto error;
 	if (c) {
 		busy_node = mxmlNewText(busy_node, 0, c);
+		free(c);
 		if (!busy_node)
 			goto error;
-		free(c);
 	}
 
 	tmp = "InternetGatewayDevice.ManagementServer.ConnectionRequestURL";
@@ -300,9 +300,9 @@ xml_prepare_inform_message(char **msg_out)
 		goto error;
 	if (c) {
 		busy_node = mxmlNewText(busy_node, 0, c);
+		free(c);
 		if (!busy_node)
 			goto error;
-		free(c);
 	}
 
 	*msg_out = mxmlSaveAllocString(tree, MXML_NO_CALLBACK);
