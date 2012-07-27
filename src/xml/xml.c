@@ -402,6 +402,53 @@ done:
 }
 
 int8_t
+xml_create_generic_fault_message(mxml_node_t *body, bool client, char *code,
+				 char *string)
+{
+	mxml_node_t *node, *tmp_node;
+	int8_t ret = FC_ERROR;
+
+	FC_DEVEL_DEBUG("enter");
+
+	node = mxmlNewElement(body, "soap_env:Fault");
+	if (!node)
+		goto out;
+
+	tmp_node = mxmlNewElement(node, "faultcode");
+	if (!tmp_node)
+		goto out;
+	mxmlNewText(tmp_node, 0, client ? "Client" : "Server");
+
+	tmp_node = mxmlNewElement(node, "faultstring");
+	if (!tmp_node)
+		goto out;
+	mxmlNewText(tmp_node, 0, "CWMP fault");
+
+	node = mxmlNewElement(node, "detail");
+	if (!node)
+		goto out;
+
+	node = mxmlNewElement(node, "cwmp:Fault");
+	if (!node)
+		goto out;
+
+	tmp_node = mxmlNewElement(node, "FaultCode");
+	if (!node)
+		goto out;
+	mxmlNewText(tmp_node, 0, code);
+
+	tmp_node = mxmlNewElement(node, "FaultString");
+	if (!node)
+		goto out;
+	mxmlNewText(tmp_node, 0, string);
+
+	ret = FC_SUCCESS;
+out:
+	FC_DEVEL_DEBUG("exit");
+	return ret;
+}
+
+int8_t
 xml_handle_set_parameter_values(mxml_node_t *body_in, mxml_node_t *tree_in,
 				mxml_node_t *tree_out)
 {
