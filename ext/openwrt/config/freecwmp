@@ -20,7 +20,11 @@ config device
 	option software_version example_sw_version
 
 config scripts
+	# load OpenWrt generic network functions
+	list location /lib/functions/network.sh
+	# load freecwmp common functions
 	list location /usr/share/freecwmp/functions/common
+	# freecwmp specific functions
 	list location /usr/share/freecwmp/functions/device_info
 	list get_function_name get_device_info
 	list set_function_name set_device_info

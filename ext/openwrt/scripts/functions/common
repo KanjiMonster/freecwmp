@@ -14,18 +14,6 @@ if [ -n "$value" -o ${FLAGS_empty} -eq ${FLAGS_TRUE} ]; then
 fi
 }
 
-get_interface_ip() {
-local interface="$1"
-
-echo -n `/sbin/ifconfig $interface | grep 'inet addr:' | cut -d ':' -f2 | cut -d ' ' -f1`
-}
-
-get_interface_mac() {
-local interface="$1"
-
-echo -n `/sbin/ifconfig $interface | head -n1 | awk -F 'HWaddr ' '{ print $2 }'`
-}
-
 delay_service_restart() {
 local service="$1"
 local delay="$2"

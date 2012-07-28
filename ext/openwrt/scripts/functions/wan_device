@@ -10,7 +10,7 @@ freecwmp_output "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPCo
 get_wan_device_mng_interface_ip() {
 local val
 if [ -z "$default_wan_device_mng_interface_ip" ]; then
-	val=`get_interface_ip $default_wan_device_mng_interface`
+	val=`network_get_ipaddr val mng`
 else
 	val=$default_wan_device_mng_interface_ip
 fi
@@ -19,7 +19,7 @@ freecwmp_output "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPCo
 
 get_wan_device_mng_interface_mac() {
 if [ -z "$default_wan_device_mng_interface_mac" ]; then
-	val=`get_interface_mac $default_wan_device_mng_interface`
+	val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get network.mng.macaddr`
 else
 	val=$default_wan_device_mng_interface_mac
 fi
