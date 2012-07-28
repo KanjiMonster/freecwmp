@@ -1,17 +1,13 @@
 #!/bin/sh
-# Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
+# Copyright (C) 2011-2012 Luka Perkov <freecwmp@lukaperkov.net>
 
-. /usr/share/freecwmp/functions/common
-
-get_wan_device_mng_status()
-{
+get_wan_device_mng_status() {
 # TODO: Unconfigured ; Connecting ; Connected ; PendingDisconnect ; Disconneting ; Disconnected 
 local val="Connected"
 freecwmp_output "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1.ConnectionStatus" "$val"
 }
 
-get_wan_device_mng_interface_ip()
-{
+get_wan_device_mng_interface_ip() {
 local val
 if [ -z "$default_wan_device_mng_interface_ip" ]; then
 	val=`get_interface_ip $default_wan_device_mng_interface`
@@ -21,8 +17,7 @@ fi
 freecwmp_output "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1.ExternalIPAddress" "$val"
 }
 
-get_wan_device_mng_interface_mac()
-{
+get_wan_device_mng_interface_mac() {
 if [ -z "$default_wan_device_mng_interface_mac" ]; then
 	val=`get_interface_mac $default_wan_device_mng_interface`
 else
@@ -31,50 +26,43 @@ fi
 freecwmp_output "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1.MACAddress" "$val"
 }
 
-get_wan_device_wan_ppp_enable()
-{
-local val=`uci $uci_options get network.wan.auto 2> /dev/null`
+get_wan_device_wan_ppp_enable() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get network.wan.auto 2> /dev/null`
 if [ -z $val ]; then
 	val="1"
 fi
 freecwmp_output "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Enable" "$val"
 }
 
-set_wan_device_wan_ppp_enable()
-{
+set_wan_device_wan_ppp_enable() {
 local val=$1
 if [ "$val" -eq 0 ]; then
-	uci $uci_options set network.wan.auto=0
+	/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set network.wan.auto=0
 	ifdown wan &
 elif [ "$val" -eq 1 ]; then
-	uci $uci_options set network.wan.auto=1
+	/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set network.wan.auto=1
 	ifup wan &
 fi
 }
 
-get_wan_device_wan_ppp_username()
-{
-local val=`uci $uci_options get network.wan.username 2> /dev/null`
+get_wan_device_wan_ppp_username() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get network.wan.username 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Username" "$val"
 }
 
-set_wan_device_wan_ppp_username()
-{
-uci $uci_options set network.wan.username="$1"
+set_wan_device_wan_ppp_username() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set network.wan.username="$1"
 }
 
-get_wan_device_wan_ppp_password()
-{
+get_wan_device_wan_ppp_password() {
 freecwmp_output "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Password" ""
 }
 
-set_wan_device_wan_ppp_password()
-{
-uci $uci_options set network.wan.password="$1"
+set_wan_device_wan_ppp_password() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set network.wan.password="$1"
 }
 
-get_wan_device()
-{
+get_wan_device() {
 case "$1" in
 	InternetGatewayDevice.)
 	get_wan_device_mng_status
@@ -147,8 +135,7 @@ case "$1" in
 esac
 }
 
-set_wan_device()
-{
+set_wan_device() {
 case "$1" in
 	InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Enable)
 	set_wan_device_wan_ppp_enable "$2"
@@ -160,5 +147,5 @@ case "$1" in
 	set_wan_device_wan_ppp_password "$2"
 	;;
 esac
-uci $uci_options commit
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit
 }

@@ -19,5 +19,23 @@ config device
 	option hardware_version example_hw_version
 	option software_version example_sw_version
 
+config scripts
+	list location /usr/share/freecwmp/functions/common
+	list location /usr/share/freecwmp/functions/device_info
+	list get_function_name get_device_info
+	list set_function_name set_device_info
+	list location /usr/share/freecwmp/functions/lan_device
+	list get_function_name get_lan_device
+	list set_function_name set_lan_device
+	list location /usr/share/freecwmp/functions/management_server
+	list get_function_name get_management_server
+	list set_function_name set_management_server
+	list location /usr/share/freecwmp/functions/voice_service
+	list get_function_name get_voice_service
+	list set_function_name set_voice_service
+	list location /usr/share/freecwmp/functions/wan_device
+	list get_function_name get_wan_device
+	list set_function_name set_wan_device
+
 config cwmp
 

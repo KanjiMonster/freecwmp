@@ -1,12 +1,9 @@
 #!/bin/sh
 # Copyright (C) 2012 Luka Perkov <freecwmp@lukaperkov.net>
 
-. /usr/share/freecwmp/functions/common
-
-get_wlan_enable()
-{
+get_wlan_enable() {
 local num="$1"
-local val=`uci $uci_options get wireless.@wifi-device[$num].disabled 2> /dev/null`
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get wireless.@wifi-device[$num].disabled 2> /dev/null`
 let num=$num+1
 if [ "$val" = "1" ]; then
 	val="0"
@@ -16,8 +13,7 @@ fi
 freecwmp_output "InternetGatewayDevice.LANDevice.1.WLANConfiguration.$num.Enable" "$val"
 }
 
-set_wlan_enable()
-{
+set_wlan_enable() {
 local num="$1"
 local val="$2"
 if [ "$val" = "1" ]; then
@@ -26,27 +22,24 @@ else
 	val="1"
 fi
 delay_command "wifi" "wifi" "45"
-uci $uci_options set wireless.@wifi-device[$num].disabled="$val"
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set wireless.@wifi-device[$num].disabled="$val"
 }
 
-get_wlan_ssid()
-{
+get_wlan_ssid() {
 local num="$1"
-local val=`uci $uci_options get wireless.@wifi-iface[$num].ssid 2> /dev/null`
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get wireless.@wifi-iface[$num].ssid 2> /dev/null`
 let num=$num+1
 freecwmp_output "InternetGatewayDevice.LANDevice.1.WLANConfiguration.$num.SSID" "$val"
 }
 
-set_wlan_ssid()
-{
+set_wlan_ssid() {
 local num="$1"
 local val="$2"
 delay_command "wifi" "wifi" "45"
-uci $uci_options set wireless.@wifi-iface[$num].ssid="$val"
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set wireless.@wifi-iface[$num].ssid="$val"
 }
 
-get_lan_device()
-{
+get_lan_device() {
 case "$1" in
 	InternetGatewayDevice.)
 	get_wlan_enable 0
@@ -77,8 +70,7 @@ case "$1" in
 esac
 }
 
-set_lan_device()
-{
+set_lan_device() {
 case "$1" in
 	InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable)
 	set_wlan_enable 0 "$2"
@@ -87,5 +79,5 @@ case "$1" in
 	set_wlan_ssid 0 "$2"
 	;;
 esac
-uci $uci_options commit
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit
 }

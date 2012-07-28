@@ -1,172 +1,140 @@
 #!/bin/sh
-# Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
+# Copyright (C) 2011-2012 Luka Perkov <freecwmp@lukaperkov.net>
 
-. /usr/share/freecwmp/functions/common
-
-get_device_info_manufacturer()
-{
-local val=`uci $uci_options get freecwmp.@device[0].manufacturer 2> /dev/null`
+get_device_info_manufacturer() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].manufacturer 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.Manufacturer" "$val"
 }
 
-set_device_info_manufacturer()
-{
-uci $uci_options set freecwmp.@device[0].manufacturer="$1"
+set_device_info_manufacturer() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].manufacturer="$1"
 }
 
-get_device_info_oui()
-{
-local val=`uci $uci_options get freecwmp.@device[0].oui 2> /dev/null`
+get_device_info_oui() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].oui 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.ManufacturerOUI" "$val"
 }
 
-set_device_info_oui()
-{
-uci $uci_options set freecwmp.@device[0].oui="$1"
+set_device_info_oui() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].oui="$1"
 }
 
-get_device_info_model_name()
-{
-local val=`uci $uci_options get freecwmp.@device[0].model_name 2> /dev/null`
+get_device_info_model_name() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].model_name 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.ModelName" "$val"
 }
 
-set_device_info_model_name()
-{
-uci $uci_options set freecwmp.@device[0].model_name="$1"
+set_device_info_model_name() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].model_name="$1"
 }
 
-get_device_info_description()
-{
-local val=`uci $uci_options get freecwmp.@device[0].description 2> /dev/null`
+get_device_info_description() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].description 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.Description" "$val"
 }
 
-set_device_info_description()
-{
-uci $uci_options set freecwmp.@device[0].description="$1"
+set_device_info_description() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].description="$1"
 }
 
-get_device_info_product_class()
-{
-local val=`uci $uci_options get freecwmp.@device[0].product_class 2> /dev/null`
+get_device_info_product_class() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].product_class 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.ProductClass" "$val"
 }
 
-set_device_info_product_class()
-{
-uci $uci_options set freecwmp.@device[0].product_class="$1"
+set_device_info_product_class() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].product_class="$1"
 }
 
-get_device_info_serial_number()
-{
-local val=`uci $uci_options get freecwmp.@device[0].serial_number 2> /dev/null`
+get_device_info_serial_number() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].serial_number 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.SerialNumber" "$val"
 }
 
-set_device_info_serial_number()
-{
-uci $uci_options set freecwmp.@device[0].serial_number="$1"
+set_device_info_serial_number() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].serial_number="$1"
 }
 
-get_device_info_hardware_version()
-{
-local val=`uci $uci_options get freecwmp.@device[0].hardware_version 2> /dev/null`
+get_device_info_hardware_version() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].hardware_version 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.HardwareVersion" "$val"
 }
 
-set_device_info_hardware_version()
-{
-uci $uci_options set freecwmp.@device[0].hardware_version="$1"
+set_device_info_hardware_version() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].hardware_version="$1"
 }
 
-get_device_info_software_version()
-{
-local val=`uci $uci_options get freecwmp.@device[0].software_version 2> /dev/null`
+get_device_info_software_version() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].software_version 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.SoftwareVersion" "$val"
 }
 
-set_device_info_software_version()
-{
-uci $uci_options set freecwmp.@device[0].software_version="$1"
+set_device_info_software_version() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].software_version="$1"
 }
 
-get_device_info_firmware()
-{
-local val=`uci $uci_options get freecwmp.@device[0].firmware 2> /dev/null`
+get_device_info_firmware() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].firmware 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.ModemFirmwareVersion" "$val"
 }
 
-set_device_info_firmware()
-{
-uci $uci_options set freecwmp.@device[0].firmware="$1"
+set_device_info_firmware() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].firmware="$1"
 }
 
 # OPTIONAL: InternetGatewayDevice.DeviceInfo.EnabledOptions
 
-get_device_info_additional_hardware_version()
-{
-local val=`uci $uci_options get freecwmp.@device[0].additional_hardware_version 2> /dev/null`
+get_device_info_additional_hardware_version() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].additional_hardware_version 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.AdditionalHardwareVersion" "$val"
 }
 
-set_device_info_additional_hardware_version()
-{
-uci $uci_options set freecwmp.@device[0].additional_hardware_version="$1"
+set_device_info_additional_hardware_version() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].additional_hardware_version="$1"
 }
 
-get_device_info_additional_software_version()
-{
-local val=`uci $uci_options get freecwmp.@device[0].additional_software_version 2> /dev/null`
+get_device_info_additional_software_version() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].additional_software_version 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.AdditionalSoftwareVersion" "$val"
 }
 
-set_device_info_additional_software_version()
-{
-uci $uci_options set freecwmp.@device[0].additional_software_version="$1"
+set_device_info_additional_software_version() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].additional_software_version="$1"
 }
 
-get_device_info_spec_version()
-{
-local val=`uci $uci_options get freecwmp.@device[0].spec_version 2> /dev/null`
+get_device_info_spec_version() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].spec_version 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.SpecVersion" "$val"
 }
 
-set_device_info_spec_version()
-{
-uci $uci_options set freecwmp.@device[0].spec_version="$1"
+set_device_info_spec_version() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].spec_version="$1"
 }
 
-get_device_info_provisioning_code()
-{
-local val=`uci $uci_options get freecwmp.@device[0].provisioning_code 2> /dev/null`
+get_device_info_provisioning_code() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].provisioning_code 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.ProvisioningCode" "$val"
 }
 
-set_device_info_provisioning_code()
-{
-uci $uci_options set freecwmp.@device[0].provisioning_code="$1"
+set_device_info_provisioning_code() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].provisioning_code="$1"
 }
 
-get_device_info_uptime()
-{
+get_device_info_uptime() {
 local val=`cat /proc/uptime | awk -F "." '{ print $1 }'`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.UpTime" "$val"
 }
 
-get_device_info_first_use_date()
-{
-local val=`uci $uci_options get freecwmp.@device[0].first_use_date 2> /dev/null`
+get_device_info_first_use_date() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@device[0].first_use_date 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.DeviceInfo.FirstUseDate" "$val"
 }
 
-set_device_info_first_use_date()
-{
-uci $uci_options set freecwmp.@device[0].first_use_date="$1"
+set_device_info_first_use_date() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@device[0].first_use_date="$1"
 }
 
-get_device_info_device_log()
-{
+get_device_info_device_log() {
 local val=""
 if [ ${FLAGS_last} -eq ${FLAGS_TRUE} ]; then
 	val=`dmesg | tail -n1`
@@ -176,8 +144,7 @@ fi
 freecwmp_output "InternetGatewayDevice.DeviceInfo.DeviceLog" "$val"
 }
 
-get_device_info()
-{
+get_device_info() {
 case "$1" in
 	InternetGatewayDevice.)
 	get_device_info_manufacturer
@@ -266,8 +233,7 @@ case "$1" in
 esac
 }
 
-set_device_info()
-{
+set_device_info() {
 case "$1" in
 	InternetGatewayDevice.DeviceInfo.Manufacturer)
 	set_device_info_manufacturer "$2"
@@ -312,5 +278,5 @@ case "$1" in
 	set_device_info_first_use_date "$2"
 	;;
 esac
-uci $uci_options commit
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit
 }

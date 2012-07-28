@@ -1,15 +1,9 @@
 #!/bin/sh
-# Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
+# Copyright (C) 2011-2012 Luka Perkov <freecwmp@lukaperkov.net>
 
 . /lib/functions.sh
 . /usr/share/shflags/shflags.sh
 . /usr/share/freecwmp/defaults
-. /usr/share/freecwmp/functions/device_info
-. /usr/share/freecwmp/functions/management_server
-. /usr/share/freecwmp/functions/lan_device
-. /usr/share/freecwmp/functions/wan_device
-. /usr/share/freecwmp/functions/voice_service
-. /usr/share/freecwmp/functions/x_freecwmp_org
 
 # define a 'name' command-line string flag
 DEFINE_boolean 'newline' false 'do not output the trailing newline' 'n'
@@ -69,57 +63,35 @@ if [ ${FLAGS_debug} -eq ${FLAGS_TRUE} ]; then
 	echo "[debug] started at \"`date`\""
 fi
 
+load_script() {
+	. $1 
+}
+
+get_functions_names=""
+set_functions_names=""
+handle_scripts() {
+	local section="$1"
+	config_get prefix "$section" "prefix"
+	config_list_foreach "$section" 'location' load_script
+	config_get get_function_names "$section" "get_function_name"
+	config_get set_function_names "$section" "set_function_name"
+}
+
+config_load freecwmp
+config_foreach handle_scripts "scripts"
+
 if [ "$action" = "get" ]; then
-	parameter_name=$2
-	case "$parameter_name" in
-		InternetGatewayDevice.DeviceInfo.*)
-		get_device_info "$parameter_name"
-		;;
-		InternetGatewayDevice.ManagementServer.*)
-		get_management_server "$parameter_name"
-		;;
-		InternetGatewayDevice.LANDevice.*)
-		get_lan_device "$parameter_name"
-		;;
-		InternetGatewayDevice.WANDevice.*)
-		get_wan_device "$parameter_name"
-		;;
-		InternetGatewayDevice.Services.VoiceService.*)
-		get_voice_service "$parameter_name"
-		;;
-		InternetGatewayDevice.Services.*)
-		get_voice_service "$parameter_name"
-		;;
-		InternetGatewayDevice.*)
-		get_device_info "$parameter_name"
-		get_management_server "$parameter_name"
-		get_lan_device "$parameter_name"
-		get_wan_device "$parameter_name"
-		get_voice_service "$parameter_name"
-		;;
-	esac
+	for function_name in $get_function_names
+	do
+		$function_name "$2"
+	done
 fi
 
 if [ "$action" = "set" ]; then
-	parameter_name=$2
-	value=$3
-	case "$parameter_name" in
-		InternetGatewayDevice.DeviceInfo.*)
-		set_device_info "$parameter_name" "$value"
-		;;
-		InternetGatewayDevice.ManagementServer.*)
-		set_management_server "$parameter_name" "$value"
-		;;
-		InternetGatewayDevice.WANDevice.*)
-		set_wan_device "$parameter_name" "$value"
-		;;
-		InternetGatewayDevice.LANDevice.*)
-		set_lan_device "$parameter_name" "$value"
-		;;
-		InternetGatewayDevice.Services.VoiceService.*)
-		set_voice_service "$parameter_name" "$value"
-		;;
-	esac
+	for function_name in $set_function_names
+	do
+		$function_name "$2" "$3"
+	done
 fi
 
 if [ "$action" = "download" ]; then
@@ -145,8 +117,8 @@ if [ "$action" = "factory_reset" ]; then
 fi
 
 if [ "$action" = "reboot" ]; then
-	uci $uci_options set freecwmp.@local[0].event="boot"
-	uci $uci_options commit
+	/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@local[0].event="boot"
+	/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit
 
 	if [ ${FLAGS_dummy} -eq ${FLAGS_TRUE} ]; then
 		echo "# reboot"
@@ -159,4 +131,3 @@ fi
 if [ ${FLAGS_debug} -eq ${FLAGS_TRUE} ]; then
 	echo "[debug] exited at \"`date`\""
 fi
-

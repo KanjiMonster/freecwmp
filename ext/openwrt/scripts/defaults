@@ -1,9 +1,8 @@
 #!/bin/sh
-# Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
+# Copyright (C) 2011-2012 Luka Perkov <freecwmp@lukaperkov.net>
 
 # set these to appropriate values and remove comment if you want to use them
 
-#uci_options=""
 #default_management_server_acs_hostname=""
 default_wan_device_mng_interface="eth0"
 #default_wan_device_mng_interface_ip=""

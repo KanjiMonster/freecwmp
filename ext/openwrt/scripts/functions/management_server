@@ -1,11 +1,7 @@
 #!/bin/sh
-# Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
+# Copyright (C) 2011-2012 Luka Perkov <freecwmp@lukaperkov.net>
 
-. /usr/share/freecwmp/functions/common
-. /usr/share/freecwmp/functions/wan_device
-
-get_management_server_url()
-{
+get_management_server_url() {
 local tmp=${FLAGS_value}
 FLAGS_value=${FLAGS_TRUE}
 local scheme=`get_management_server_x_freecwmp_org__acs_scheme`
@@ -17,8 +13,7 @@ local val=`echo $scheme://$hostname:$port$path`
 freecwmp_output "InternetGatewayDevice.ManagementServer.URL" "$val"
 }
 
-set_management_server_url()
-{
+set_management_server_url() {
 local url=$1
 local scheme
 local hostname
@@ -47,52 +42,43 @@ set_management_server_x_freecwmp_org__acs_port $port
 set_management_server_x_freecwmp_org__acs_path $path
 }
 
-get_management_server_username()
-{
-local val=`uci $uci_options get freecwmp.@acs[0].username 2> /dev/null`
+get_management_server_username() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@acs[0].username 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.Username" "$val"
 }
 
-set_management_server_username()
-{
-uci $uci_options set freecwmp.@acs[0].username="$1"
+set_management_server_username() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@acs[0].username="$1"
 }
 
-get_management_server_password()
-{
-local val=`uci $uci_options get freecwmp.@acs[0].password 2> /dev/null`
+get_management_server_password() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@acs[0].password 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.Password" "$val"
 }
 
-set_management_server_password()
-{
-uci $uci_options set freecwmp.@acs[0].password="$1"
+set_management_server_password() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@acs[0].password="$1"
 }
 
-get_management_server_periodic_inform_enable()
-{
-local val=`uci $uci_options get freecwmp.@cwmp[0].periodic_inform_enable 2> /dev/null`
+get_management_server_periodic_inform_enable() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@cwmp[0].periodic_inform_enable 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.PeriodicInformEnable" "$val"
 }
 
-set_management_server_periodic_inform_enable()
-{
-uci $uci_options set freecwmp.@cwmp[0].periodic_inform_enable="$1"
+set_management_server_periodic_inform_enable() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@cwmp[0].periodic_inform_enable="$1"
 }
 
-get_management_server_periodic_inform_interval()
-{
-local val=`uci $uci_options get freecwmp.@cwmp[0].periodic_inform_interval 2> /dev/null`
+get_management_server_periodic_inform_interval() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@cwmp[0].periodic_inform_interval 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.PeriodicInformInterval" "$val"
 }
 
-set_management_server_periodic_inform_interval()
-{
-uci $uci_options set freecwmp.@cwmp[0].periodic_inform_interval="$1"
+set_management_server_periodic_inform_interval() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@cwmp[0].periodic_inform_interval="$1"
 }
 
-get_management_server_connection_request_url()
-{
+get_management_server_connection_request_url() {
 local tmp=${FLAGS_value}
 FLAGS_value=${FLAGS_TRUE}
 local ip=`get_wan_device_mng_interface_ip`
@@ -105,91 +91,76 @@ fi
 
 # TODO: InternetGatewayDevice.ManagementServer.PeriodicInformTime
 
-get_management_server_connection_request_username()
-{
-local val=`uci $uci_options get freecwmp.@local[0].username 2> /dev/null`
+get_management_server_connection_request_username() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@local[0].username 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.ConnectionRequestUsername" "$val"
 }
 
-set_management_server_connection_request_username()
-{
-uci $uci_options set freecwmp.@local[0].username="$1"
+set_management_server_connection_request_username() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@local[0].username="$1"
 }
 
-get_management_server_connection_request_password()
-{
-local val=`uci $uci_options get freecwmp.@local[0].password 2> /dev/null`
+get_management_server_connection_request_password() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@local[0].password 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.ConnectionRequestPassword" "$val"
 }
 
-set_management_server_connection_request_password()
-{
-uci $uci_options set freecwmp.@local[0].password="$1"
+set_management_server_connection_request_password() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@local[0].password="$1"
 }
 
 # OPTIONAL: InternetGatewayDevice.ManagementServer.UpgradesManaged
 
-get_management_server_x_freecwmp_org__acs_scheme()
-{
-local val=`uci $uci_options get freecwmp.@acs[0].scheme 2> /dev/null`
+get_management_server_x_freecwmp_org__acs_scheme() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@acs[0].scheme 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.X_freecwmp_org__ACS_Scheme" "$val"
 }
 
-set_management_server_x_freecwmp_org__acs_scheme()
-{
-uci $uci_options set freecwmp.@acs[0].scheme="$1"
+set_management_server_x_freecwmp_org__acs_scheme() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@acs[0].scheme="$1"
 }
 
-get_management_server_x_freecwmp_org__acs_hostname()
-{
-local val=`uci $uci_options get freecwmp.@acs[0].hostname 2> /dev/null`
+get_management_server_x_freecwmp_org__acs_hostname() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@acs[0].hostname 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.X_freecwmp_org__ACS_Hostname" "$val"
 }
 
-set_management_server_x_freecwmp_org__acs_hostname()
-{
+set_management_server_x_freecwmp_org__acs_hostname() {
 if [ -z "$default_management_server_acs_hostname" ]; then
-	uci $uci_options set freecwmp.@acs[0].hostname="$1"
+	/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@acs[0].hostname="$1"
 else
-	uci $uci_options set freecwmp.@acs[0].hostname="$default_management_server_acs_hostname"
+	/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@acs[0].hostname="$default_management_server_acs_hostname"
 fi
 }
 
-get_management_server_x_freecwmp_org__acs_port()
-{
-local val=`uci $uci_options get freecwmp.@acs[0].port 2> /dev/null`
+get_management_server_x_freecwmp_org__acs_port() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@acs[0].port 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.X_freecwmp_org__ACS_Port" "$val"
 }
 
-set_management_server_x_freecwmp_org__acs_port()
-{
-uci $uci_options set freecwmp.@acs[0].port="$1"
+set_management_server_x_freecwmp_org__acs_port() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@acs[0].port="$1"
 }
 
-get_management_server_x_freecwmp_org__acs_path()
-{
-local val=`uci $uci_options get freecwmp.@acs[0].path 2> /dev/null`
+get_management_server_x_freecwmp_org__acs_path() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@acs[0].path 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.X_freecwmp_org__ACS_Path" "$val"
 }
 
-set_management_server_x_freecwmp_org__acs_path()
-{
-uci $uci_options set freecwmp.@acs[0].path="$1"
+set_management_server_x_freecwmp_org__acs_path() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@acs[0].path="$1"
 }
 
-get_management_server_x_freecwmp_org__connection_request_port()
-{
-local val=`uci $uci_options get freecwmp.@local[0].port 2> /dev/null`
+get_management_server_x_freecwmp_org__connection_request_port() {
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@local[0].port 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.X_freecwmp_org__Connection_Request_Port" "$val"
 }
 
-set_management_server_x_freecwmp_org__connection_request_port()
-{
-uci $uci_options set freecwmp.@local[0].port="$1"
+set_management_server_x_freecwmp_org__connection_request_port() {
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@local[0].port="$1"
 }
 
-get_management_server()
-{
+get_management_server() {
 case "$1" in
 	InternetGatewayDevice.)
 	get_management_server_url
@@ -263,8 +234,7 @@ case "$1" in
 esac
 }
 
-set_management_server()
-{
+set_management_server() {
 case "$1" in
 	InternetGatewayDevice.ManagementServer.URL)
 	set_management_server_url "$2"
@@ -306,5 +276,5 @@ case "$1" in
 	set_management_server_x_freecwmp_org__connection_request_port "$2"
 	;;
 esac
-uci $uci_options commit
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit
 }

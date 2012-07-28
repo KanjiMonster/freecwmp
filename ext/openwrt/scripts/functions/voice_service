@@ -1,8 +1,6 @@
 #!/bin/sh
 # Copyright (C) 2012 Luka Perkov <freecwmp@lukaperkov.net>
 
-. /usr/share/freecwmp/functions/common
-
 # OPTIONAL: InternetGatewayDevice.Services.VoiceService.1.VoiceProfile.1.SIP.ProxyServer
 # OPTIONAL: InternetGatewayDevice.Services.VoiceService.1.VoiceProfile.1.SIP.ProxyServerPort
 # OPTIONAL: InternetGatewayDevice.Services.VoiceService.1.VoiceProfile.1.SIP.ProxyServerTransport
@@ -14,10 +12,9 @@
 # OPTIONAL: InternetGatewayDevice.Services.VoiceService.1.VoiceProfile.1.SIP.OutbandProxy
 # OPTIONAL: InternetGatewayDevice.Services.VoiceService.1.VoiceProfile.1.SIP.OutbandProxyPort
 
-get_line_enable()
-{
+get_line_enable() {
 local num="$1"
-local val=`uci $uci_options get telephony.@account[$num].disabled 2> /dev/null`
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get telephony.@account[$num].disabled 2> /dev/null`
 let num=$num+1
 if [ -n "$val" -a "$val" != "0" -o "$val" = "1" ]; then
 	val="Disabled"
@@ -27,8 +24,7 @@ fi
 freecwmp_output "InternetGatewayDevice.Services.VoiceService.1.VoiceProfile.1.Line.$num.Enable" "$val"
 }
 
-set_line_enable()
-{
+set_line_enable() {
 local num="$1"
 local val="$2"
 if [ "$val" = "Enabled" ]; then
@@ -37,56 +33,49 @@ else
 	val="1"
 fi
 delay_service_restart "telephony" "45"
-uci $uci_options set telephony.@account[$num].disabled="$val"
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set telephony.@account[$num].disabled="$val"
 }
 
-get_line_sip_username()
-{
+get_line_sip_username() {
 local num="$1"
-local val=`uci $uci_options get telephony.@account[$num].username 2> /dev/null`
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get telephony.@account[$num].username 2> /dev/null`
 let num=$num+1
 freecwmp_output "InternetGatewayDevice.Services.VoiceService.1.VoiceProfile.1.Line.$num.SIP.AuthUserName" "$val"
 }
 
-set_line_sip_username()
-{
+set_line_sip_username() {
 local num="$1"
 local val="$2"
-uci $uci_options set telephony.@account[$num].username="$val"
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set telephony.@account[$num].username="$val"
 }
 
-get_line_sip_password()
-{
+get_line_sip_password() {
 local num="$1"
-local val=`uci $uci_options get telephony.@account[$num].password 2> /dev/null`
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get telephony.@account[$num].password 2> /dev/null`
 let num=$num+1
 freecwmp_output "InternetGatewayDevice.Services.VoiceService.1.VoiceProfile.1.Line.$num.SIP.AuthPassword" "$val"
 }
 
-set_line_sip_password()
-{
+set_line_sip_password() {
 local num="$1"
 local val="$2"
-uci $uci_options set telephony.@account[$num].password="$val"
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set telephony.@account[$num].password="$val"
 }
 
-get_line_sip_uri()
-{
+get_line_sip_uri() {
 local num="$1"
-local val=`uci $uci_options get telephony.@account[$num].realm 2> /dev/null`
+local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get telephony.@account[$num].realm 2> /dev/null`
 let num=$num+1
 freecwmp_output "InternetGatewayDevice.Services.VoiceService.1.VoiceProfile.1.Line.$num.SIP.URI" "$val"
 }
 
-set_line_sip_uri()
-{
+set_line_sip_uri() {
 local num="$1"
 local val="$2"
-uci $uci_options set telephony.@account[$num].realm="$val"
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set telephony.@account[$num].realm="$val"
 }
 
-get_voice_service()
-{
+get_voice_service() {
 case "$1" in
 	InternetGatewayDevice.)
 	get_line_enable 0
@@ -222,8 +211,7 @@ case "$1" in
 esac
 }
 
-set_voice_service()
-{
+set_voice_service() {
 case "$1" in
 	InternetGatewayDevice.Services.VoiceService.1.VoiceProfile.1.SIP.ProxyServer)
 	;;
@@ -270,5 +258,5 @@ case "$1" in
 	set_line_sip_uri 1 "$2"
 	;;
 esac
-uci $uci_options commit
+/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit
 }
