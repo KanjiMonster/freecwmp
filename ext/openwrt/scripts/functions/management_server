@@ -61,21 +61,25 @@ set_management_server_password() {
 }
 
 get_management_server_periodic_inform_enable() {
-local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@cwmp[0].periodic_inform_enable 2> /dev/null`
-freecwmp_output "InternetGatewayDevice.ManagementServer.PeriodicInformEnable" "$val"
+local parm="InternetGatewayDevice.ManagementServer.PeriodicInformEnable"
+freecwmp_get_parm_val "val" "$parm"
+freecwmp_output "$parm" "$val"
 }
 
 set_management_server_periodic_inform_enable() {
-/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@cwmp[0].periodic_inform_enable="$1"
+local parm="InternetGatewayDevice.ManagementServer.PeriodicInformEnable"
+freecwmp_set_parm_val "$parm" "$1"
 }
 
 get_management_server_periodic_inform_interval() {
-local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@cwmp[0].periodic_inform_interval 2> /dev/null`
-freecwmp_output "InternetGatewayDevice.ManagementServer.PeriodicInformInterval" "$val"
+local parm="InternetGatewayDevice.ManagementServer.PeriodicInformInterval"
+freecwmp_get_parm_val "val" "$parm"
+freecwmp_output "$parm" "$val"
 }
 
 set_management_server_periodic_inform_interval() {
-/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@cwmp[0].periodic_inform_interval="$1"
+local parm="InternetGatewayDevice.ManagementServer.PeriodicInformInterval"
+freecwmp_set_parm_val "$parm" "$1"
 }
 
 get_management_server_connection_request_url() {

@@ -41,5 +41,3 @@ config scripts
 	list get_function_name get_wan_device
 	list set_function_name set_wan_device
 
-config cwmp
-

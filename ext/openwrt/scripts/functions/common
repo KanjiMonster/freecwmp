@@ -14,6 +14,51 @@ if [ -n "$value" -o ${FLAGS_empty} -eq ${FLAGS_TRUE} ]; then
 fi
 }
 
+freecwmp_config_cwmp() {
+	config_get __parm "$1" "parameter"
+	config_get __val "$1" "value"
+	if [ "$__parm" = "$4" ]; then
+		if [ "get" = "$2" ]; then
+			if [ "value" = "$3" ]; then
+				eval "export -- \"$5=\"$__val\"\""
+			fi
+		elif [ "set" = "$2" ]; then
+			if [ "value" = "$3" ]; then
+				/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.$1.value=$5 2> /dev/null
+			fi
+		elif [ "check" = "$2" ]; then
+			if [ "parameter" = "$3" ]; then
+				if [ ! "$_val" = "" ]; then
+					eval "export -- \"$5=\"$1\"\""
+				fi
+			fi
+		fi
+	fi
+}
+
+freecwmp_get_parm_val() {
+	local _dest="$1"
+	local _parm="$2"
+	config_foreach freecwmp_config_cwmp "cwmp" "get" "value" "$_parm" "_val"
+	eval "export -- \"$_dest=\"$_val\"\""
+}
+
+freecwmp_set_parm_val() {
+	local _parm="$1"
+	local _val="$2"
+	config_foreach freecwmp_config_cwmp "cwmp" "check" "parameter" "$_parm" "_section"
+	if [ ! "$_section" = "" ]; then
+		/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.$_section.value=$_val 2> /dev/null
+		# or: config_foreach freecwmp_config_cwmp "cwmp" "set" "value" "$_parm" "$_val"
+	else
+		/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} batch << EOF 2>&1 >/dev/null
+			add freecwmp cwmp
+			set freecwmp.@cwmp[-1].parameter="$_parm"
+			set freecwmp.@cwmp[-1].value="$_val"
+EOF
+	fi
+}
+
 delay_service_restart() {
 local service="$1"
 local delay="$2"
