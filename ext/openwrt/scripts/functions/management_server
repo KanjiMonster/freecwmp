@@ -62,24 +62,24 @@ set_management_server_password() {
 
 get_management_server_periodic_inform_enable() {
 local parm="InternetGatewayDevice.ManagementServer.PeriodicInformEnable"
-freecwmp_get_parm_val "val" "$parm"
+freecwmp_get_parameter_value "val" "$parm"
 freecwmp_output "$parm" "$val"
 }
 
 set_management_server_periodic_inform_enable() {
 local parm="InternetGatewayDevice.ManagementServer.PeriodicInformEnable"
-freecwmp_set_parm_val "$parm" "$1"
+freecwmp_set_parameter_value "$parm" "$1"
 }
 
 get_management_server_periodic_inform_interval() {
 local parm="InternetGatewayDevice.ManagementServer.PeriodicInformInterval"
-freecwmp_get_parm_val "val" "$parm"
+freecwmp_get_parameter_value "val" "$parm"
 freecwmp_output "$parm" "$val"
 }
 
 set_management_server_periodic_inform_interval() {
 local parm="InternetGatewayDevice.ManagementServer.PeriodicInformInterval"
-freecwmp_set_parm_val "$parm" "$1"
+freecwmp_set_parameter_value "$parm" "$1"
 }
 
 get_management_server_connection_request_url() {

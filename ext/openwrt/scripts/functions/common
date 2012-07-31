@@ -2,29 +2,56 @@
 # Copyright (C) 2011-2012 Luka Perkov <freecwmp@lukaperkov.net>
 
 freecwmp_output() {
-local element="$1"
+local parameter="$1"
 local value="$2"
+local delimiter="$3"
+
+if [ "$delimiter" = "" ]; then
+	delimiter=":"
+fi
 
 if [ -n "$value" -o ${FLAGS_empty} -eq ${FLAGS_TRUE} ]; then
 	if [ ${FLAGS_value} -eq ${FLAGS_TRUE} ]; then
 		echo $ECHO_newline $value
 	else
-		echo $ECHO_newline $element : $value
+		echo $ECHO_newline $parameter "$delimiter" $value
 	fi
 fi
 }
 
+freecwmp_value_output() {
+	freecwmp_output "$1" "$2" ":"
+}
+
+freecwmp_notification_output() {
+	freecwmp_output "$1" "$2" "="
+}
+
+freecwmp_status_output() {
+	freecwmp_output "$1" "$2" "|"
+}
+
 freecwmp_config_cwmp() {
-	config_get __parm "$1" "parameter"
-	config_get __val "$1" "value"
-	if [ "$__parm" = "$4" ]; then
+	config_get __parameter "$1" "parameter"
+	config_get __value "$1" "value"
+	config_get __status "$1" "status"
+	config_get __notification "$1" "notification"
+	if [ "$__parameter" = "$4" ]; then
 		if [ "get" = "$2" ]; then
 			if [ "value" = "$3" ]; then
-				eval "export -- \"$5=\"$__val\"\""
+				eval "export -- \"$5=\"$__value\"\""
+			elif [ "status" = "$3" ]; then
+				eval "export -- \"$5=\"$__status\"\""
+			elif [ "notification" = "$3" ]; then
+				eval "export -- \"$5=\"$__notification\"\""
 			fi
 		elif [ "set" = "$2" ]; then
 			if [ "value" = "$3" ]; then
 				/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.$1.value=$5 2> /dev/null
+			elif [ "status" = "$3" ]; then
+				/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.$1.status=$5 2> /dev/null
+			elif [ "notification" = "$3" ]; then
+				/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.$1.notification=$5 2> /dev/null
 			fi
 		elif [ "check" = "$2" ]; then
 			if [ "parameter" = "$3" ]; then
@@ -36,25 +63,73 @@ freecwmp_config_cwmp() {
 	fi
 }
 
-freecwmp_get_parm_val() {
+freecwmp_get_parameter_value() {
 	local _dest="$1"
 	local _parm="$2"
 	config_foreach freecwmp_config_cwmp "cwmp" "get" "value" "$_parm" "_val"
 	eval "export -- \"$_dest=\"$_val\"\""
 }
 
-freecwmp_set_parm_val() {
+freecwmp_set_parameter_value() {
 	local _parm="$1"
 	local _val="$2"
 	config_foreach freecwmp_config_cwmp "cwmp" "check" "parameter" "$_parm" "_section"
 	if [ ! "$_section" = "" ]; then
 		/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.$_section.value=$_val 2> /dev/null
-		# or: config_foreach freecwmp_config_cwmp "cwmp" "set" "value" "$_parm" "$_val"
 	else
 		/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} batch << EOF 2>&1 >/dev/null
 			add freecwmp cwmp
 			set freecwmp.@cwmp[-1].parameter="$_parm"
 			set freecwmp.@cwmp[-1].value="$_val"
+EOF
+	fi
+	config_foreach freecwmp_config_cwmp "cwmp" "get" "notification" "$_parm" "_tmp"
+	if [ "$_tmp" = "" ]; then
+		return 0
+	fi
+	if [ "$_tmp" -eq "1" -o "$_tmp" -eq "2" ]; then
+		freecwmp_set_parameter_status "$_parm" "updated"
+	else
+		# TODO: we might want to remove this later and switch from option to list
+		freecwmp_set_parameter_status "$_parm" ""
+	fi
+}
+
+freecwmp_get_parameter_status() {
+	local _dest="$1"
+	local _parm="$2"
+	config_foreach freecwmp_config_cwmp "cwmp" "get" "status" "$_parm" "_val"
+	eval "export -- \"$_dest=\"$_val\"\""
+}
+
+freecwmp_set_parameter_status() {
+	local _parm="$1"
+	local _val="$2"
+	config_foreach freecwmp_config_cwmp "cwmp" "set" "status" "$_parm" "$_val"
+}
+
+freecwmp_get_parameter_notification() {
+	local _dest="$1"
+	local _parm="$2"
+	config_foreach freecwmp_config_cwmp "cwmp" "get" "notification" "$_parm" "_val"
+	eval "export -- \"$_dest=\"$_val\"\""
+}
+
+freecwmp_set_parameter_notification() {
+	local _parm="$1"
+	local _val="$2"
+	if [ "$_val" -eq "0" ]; then
+		config_foreach freecwmp_config_cwmp "cwmp" "set" "notification" "$_parm" ""
+		return 0
+	fi
+	config_foreach freecwmp_config_cwmp "cwmp" "check" "parameter" "$_parm" "_section"
+	if [ ! "$_section" = "" ]; then
+		/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.$_section.notification=$_val 2> /dev/null
+	else
+		/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} batch << EOF 2>&1 >/dev/null
+			add freecwmp cwmp
+			set freecwmp.@cwmp[-1].parameter="$_parm"
+			set freecwmp.@cwmp[-1].notification="$_val"
 EOF
 	fi
 }
