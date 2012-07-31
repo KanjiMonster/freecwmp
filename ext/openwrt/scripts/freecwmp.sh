@@ -18,8 +18,8 @@ DEFINE_string 'size' '' 'size of file to download [download only]' 's'
 FLAGS_HELP=`cat << EOF
 USAGE: $0 [flags] command [parameter] [values]
 command:
-  get [value|notification|status|all]
-  set [value|notification|status]
+  get [value|notification|all]
+  set [value|notification]
   download
   factory_reset
   reboot
@@ -46,10 +46,6 @@ case "$1" in
 			__arg1="$3"
 			__arg2="$4"
 			action="set_value"
-		elif [ "$2" = "status" ]; then
-			__arg1="$3"
-			__arg2="$4"
-			action="set_status"
 		else
 			__arg1="$2"
 			__arg2="$3"
@@ -63,9 +59,6 @@ case "$1" in
 		elif [ "$2" = "value" ]; then
 			__arg1="$3"
 			action="get_value"
-		elif [ "$2" = "status" ]; then
-			__arg1="$3"
-			action="get_status"
 		elif [ "$2" = "all" ]; then
 			__arg1="$3"
 			action="get_all"
@@ -100,16 +93,12 @@ load_script() {
 
 get_value_functions=""
 set_value_functions=""
-get_notification_functions=""
-set_notification_functions=""
 handle_scripts() {
 	local section="$1"
 	config_get prefix "$section" "prefix"
 	config_list_foreach "$section" 'location' load_script
 	config_get get_value_functions "$section" "get_value_function"
 	config_get set_value_functions "$section" "set_value_function"
-	config_get get_notification_functions "$section" "get_notification_function"
-	config_get set_notification_functions "$section" "set_notification_function"
 }
 
 config_load freecwmp
@@ -130,28 +119,12 @@ if [ "$action" = "set_value" ]; then
 fi
 
 if [ "$action" = "get_notification" -o "$action" = "get_all" ]; then
-	for function_name in $get_notification_functions
-	do
-		$function_name "$__arg1"
-	done
+	freecwmp_get_parameter_notification "val" "$__arg1"
+	freecwmp_notification_output "$__arg1" "$val"
 fi
 
 if [ "$action" = "set_notification" ]; then
-	for function_name in $set_notification_functions
-	do
-		$function_name "$__arg1" "$__arg2"
-	done
-fi
-
-if [ "$action" = "get_status" -o "$action" = "get_all" ]; then
-	freecwmp_get_parameter_status "__tmp" "$__arg1"
-	if [ ! "$__tmp" = "" ]; then
-		freecwmp_status_output "$__arg1" "$__tmp"
-	fi
-fi
-
-if [ "$action" = "set_status" ]; then
-	freecwmp_set_parameter_status "$__arg1" "$__arg2"
+	freecwmp_set_parameter_notification "$__arg1" "$__arg2"
 	/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit
 fi
 
