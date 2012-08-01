@@ -476,7 +476,7 @@ cwmp_set_parameter_write_handler(char *name, char *value)
 		uloop_timeout_set(&cwmp.periodic_inform_t, cwmp.periodic_inform_interval * 1000);
 	}
 
-	status = external_set_parameter_write(name, value);
+	status = external_set_action_write("value", name, value);
 
 done:
 	FC_DEVEL_DEBUG("exit");
@@ -484,12 +484,33 @@ done:
 }
 
 int8_t
-cwmp_set_parameter_execute_handler()
+cwmp_set_notification_write_handler(char *name, char *value)
+{
+	FC_DEVEL_DEBUG("enter");
+
+	int8_t status;
+
+#ifdef DEVEL_DEBUG
+	printf("+++ CWMP HANDLE SET NOTIFICATION +++\n");
+	printf("Name  : '%s'\n", name);
+	printf("Value : '%s'\n", value);
+	printf("--- CWMP HANDLE SET NOTIFICATION ---\n");
+#endif
+
+	status = external_set_action_write("notification", name, value);
+
+done:
+	FC_DEVEL_DEBUG("exit");
+	return status;
+}
+
+int8_t
+cwmp_set_action_execute_handler()
 {
 	FC_DEVEL_DEBUG("enter");
 	int8_t status;
 
-	status = external_set_parameter_execute();
+	status = external_set_action_execute();
 
 	FC_DEVEL_DEBUG("exit");
 	return status;

@@ -398,7 +398,8 @@ xml_handle_message(char *msg_in, char **msg_out)
 
 	mxml_node_t *tree_in, *tree_out, *node;
 	mxml_node_t *busy_node, *tmp_node;
-	char *c, *parameter_name, *parameter_value, *download_url, *download_size;
+	char *c, *parameter_name, *parameter_value, *parameter_notification,
+		*download_url, *download_size;
 	uint8_t status, len;
 	uint16_t att_cnt;
 
@@ -482,7 +483,7 @@ set_parameter:
 		busy_node = mxmlWalkNext(busy_node, node, MXML_DESCEND);
 	}
 
-	status = cwmp_set_parameter_execute_handler();
+	status = cwmp_set_action_execute_handler();
 	if (status != FC_SUCCESS)
 		goto error_set_parameter;
 
@@ -501,7 +502,7 @@ get_parameter:
 	node = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
 	free(c); c = NULL;
 	if (!node)
-		goto download;
+		goto set_parameter_attributes;
 	busy_node = node;
 	tmp_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
 	if (!tmp_node)
@@ -582,6 +583,67 @@ get_parameter:
 #endif
 	if (node) {
 		goto create_msg;
+	}
+
+set_parameter_attributes:
+	/* handle cwmp:SetParameterAttributes */
+	len = snprintf(NULL, 0, "%s:%s", ns.cwmp, "SetParameterAttributes");
+	c = (char *) calloc((len + 1), sizeof(char));
+	if (!c)
+		goto error;
+	snprintf(c, (len + 1), "%s:%s\0", ns.cwmp, "SetParameterAttributes");
+	node = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
+	free(c); c = NULL;
+	if (!node)
+		goto download;
+	busy_node = node;
+	uint8_t attr_notification_update;
+	while (busy_node != NULL) {
+		if (busy_node &&
+		    busy_node->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->value.element.name, "SetParameterAttributesStruct")) {
+			attr_notification_update = 0;
+			parameter_name = NULL;
+			parameter_notification = NULL;
+		}
+		if (busy_node &&
+		    busy_node->type == MXML_TEXT &&
+		    busy_node->value.text.string &&
+		    busy_node->parent->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->parent->value.element.name, "Name")) {
+			parameter_name = busy_node->value.text.string;
+		}
+		if (busy_node &&
+		    busy_node->type == MXML_TEXT &&
+		    busy_node->value.text.string &&
+		    busy_node->parent->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->parent->value.element.name, "NotificationChange")) {
+			attr_notification_update = (uint8_t) atoi(busy_node->value.text.string);
+		}
+		if (busy_node &&
+		    busy_node->type == MXML_TEXT &&
+		    busy_node->value.text.string &&
+		    busy_node->parent->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->parent->value.element.name, "Notification")) {
+			parameter_notification = busy_node->value.text.string;
+		}
+		if (attr_notification_update && parameter_name && parameter_notification) {
+			status = cwmp_set_notification_write_handler(parameter_name, parameter_notification);
+			if (status != FC_SUCCESS)
+				goto error_set_notification;
+			attr_notification_update = 0;
+			parameter_name = NULL;
+			parameter_notification = NULL;
+		}
+		busy_node = mxmlWalkNext(busy_node, node, MXML_DESCEND);
+	}
+
+	status = cwmp_set_action_execute_handler();
+	if (status != FC_SUCCESS)
+		goto error_set_notification;
+
+	if (node) {
+		goto done_set_notification;
 	}
 
 download:
@@ -710,12 +772,23 @@ reboot:
 	}
 
 
+error_set_notification:
+	// TODO: just create a message
 error_set_parameter:
 	// TODO: just create a message
 error_get_parameter:
 error_download:
 error_factory_reset:
 error_reboot:
+	goto create_msg;
+
+done_set_notification:
+	busy_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
+	if (!busy_node)
+		goto error;
+	busy_node = mxmlNewElement(busy_node, "cwmp:SetParameterAttributesResponse");
+	if (!busy_node)
+		goto error;
 	goto create_msg;
 
 done_set_parameter:

@@ -15,11 +15,11 @@ static char *fc_script = "./ext/openwrt/scripts/freecwmp.sh";
 #else
 static char *fc_script = "/usr/sbin/freecwmp";
 #endif
-static char *fc_script_set_parameters = "/tmp/freecwmp_set_parameter_values.sh";
+static char *fc_script_set_actions = "/tmp/freecwmp_set_action_values.sh";
 
 int8_t external_get_parameter(char *name, char **value);
-int8_t external_set_parameter_write(char *name, char *value);
-int8_t external_set_parameter_execute();
+int8_t external_set_action_write(char *action, char *name, char *value);
+int8_t external_set_action_execute();
 int8_t external_simple(char *arg);
 int8_t external_download(char *url, char *size);
 
