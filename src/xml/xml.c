@@ -908,14 +908,29 @@ find_method:
 	if (method) {
 		if (method->handler(node, tree_in, tree_out) != FC_SUCCESS)
 			goto error;
+	} else {
+		char *fault_string;
 
-		goto create_msg;
+		node = mxmlFindElement(tree_out, tree_out, "soap_env:Body",
+				       NULL, NULL, MXML_DESCEND);
+		if (!node)
+			goto error;
+
+		len = snprintf(NULL, 0, "%s not supported", c);
+		fault_string = malloc(len + 1);
+		if (!fault_string)
+			goto error;
+
+		snprintf(fault_string, len + 1, "%s not supported", c);
+
+		status = xml_create_generic_fault_message(node, true, "9000", fault_string);
+		free(fault_string);
+
+		if (status != FC_SUCCESS)
+			goto error;
 	}
 
-	goto error;
 
-
-create_msg:
 	*msg_out = mxmlSaveAllocString(tree_out, MXML_NO_CALLBACK);
 
 #ifdef DEBUG_SKIP
