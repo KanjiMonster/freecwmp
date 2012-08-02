@@ -27,18 +27,18 @@ config scripts
 	list location /usr/share/freecwmp/functions/common
 	# freecwmp specific functions
 	list location /usr/share/freecwmp/functions/device_info
-	list get_function_name get_device_info
-	list set_function_name set_device_info
+	list get_value_function get_device_info
+	list set_value_function set_device_info
 	list location /usr/share/freecwmp/functions/lan_device
-	list get_function_name get_lan_device
-	list set_function_name set_lan_device
+	list get_value_function get_lan_device
+	list set_value_function set_lan_device
 	list location /usr/share/freecwmp/functions/management_server
-	list get_function_name get_management_server
-	list set_function_name set_management_server
+	list get_value_function get_management_server
+	list set_value_function set_management_server
 	list location /usr/share/freecwmp/functions/voice_service
-	list get_function_name get_voice_service
-	list set_function_name set_voice_service
+	list get_value_function get_voice_service
+	list set_value_function set_voice_service
 	list location /usr/share/freecwmp/functions/wan_device
-	list get_function_name get_wan_device
-	list set_function_name set_wan_device
+	list get_value_function get_wan_device
+	list set_value_function set_wan_device
 
