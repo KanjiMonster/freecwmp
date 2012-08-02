@@ -566,9 +566,79 @@ out:
 	return ret;
 }
 
+int8_t
+xml_handle_set_parameter_attributes(mxml_node_t *body_in, mxml_node_t *tree_in,
+				    mxml_node_t *tree_out)
+{
+	char *parameter_name, *parameter_value, *parameter_notification;
+	mxml_node_t *busy_node = body_in;
+	uint8_t attr_notification_update;
+	uint8_t status;
+	int8_t ret = FC_ERROR;
+
+	FC_DEVEL_DEBUG("enter");
+
+	while (busy_node != NULL) {
+		if (busy_node &&
+		    busy_node->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->value.element.name, "SetParameterAttributesStruct")) {
+			attr_notification_update = 0;
+			parameter_name = NULL;
+			parameter_notification = NULL;
+		}
+		if (busy_node &&
+		    busy_node->type == MXML_TEXT &&
+		    busy_node->value.text.string &&
+		    busy_node->parent->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->parent->value.element.name, "Name")) {
+			parameter_name = busy_node->value.text.string;
+		}
+		if (busy_node &&
+		    busy_node->type == MXML_TEXT &&
+		    busy_node->value.text.string &&
+		    busy_node->parent->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->parent->value.element.name, "NotificationChange")) {
+			attr_notification_update = (uint8_t) atoi(busy_node->value.text.string);
+		}
+		if (busy_node &&
+		    busy_node->type == MXML_TEXT &&
+		    busy_node->value.text.string &&
+		    busy_node->parent->type == MXML_ELEMENT &&
+		    !strcmp(busy_node->parent->value.element.name, "Notification")) {
+			parameter_notification = busy_node->value.text.string;
+		}
+		if (attr_notification_update && parameter_name && parameter_notification) {
+			status = cwmp_set_notification_write_handler(parameter_name, parameter_notification);
+			if (status != FC_SUCCESS)
+				goto out;
+			attr_notification_update = 0;
+			parameter_name = NULL;
+			parameter_notification = NULL;
+		}
+		busy_node = mxmlWalkNext(busy_node, body_in, MXML_DESCEND);
+	}
+
+	status = cwmp_set_action_execute_handler();
+	if (status != FC_SUCCESS)
+		goto out;
+
+	busy_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
+	if (!busy_node)
+		goto out;
+	busy_node = mxmlNewElement(busy_node, "cwmp:SetParameterAttributesResponse");
+	if (!busy_node)
+		goto out;
+
+	ret = FC_SUCCESS;
+out:
+	FC_DEVEL_DEBUG("exit");
+	return ret;
+}
+
 const struct rpc_method rpc_methods[] = {
 	{ "SetParameterValues", xml_handle_set_parameter_values },
 	{ "GetParameterValues", xml_handle_get_parameter_values },
+	{ "SetParameterAttributes", xml_handle_set_parameter_attributes },
 };
 
 int8_t
@@ -674,66 +744,6 @@ find_method:
 		goto create_msg;
 	}
 
-set_parameter_attributes:
-	/* handle cwmp:SetParameterAttributes */
-	len = snprintf(NULL, 0, "%s:%s", ns.cwmp, "SetParameterAttributes");
-	c = (char *) calloc((len + 1), sizeof(char));
-	if (!c)
-		goto error;
-	snprintf(c, (len + 1), "%s:%s\0", ns.cwmp, "SetParameterAttributes");
-	node = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
-	free(c); c = NULL;
-	if (!node)
-		goto download;
-	busy_node = node;
-	uint8_t attr_notification_update;
-	while (busy_node != NULL) {
-		if (busy_node &&
-		    busy_node->type == MXML_ELEMENT &&
-		    !strcmp(busy_node->value.element.name, "SetParameterAttributesStruct")) {
-			attr_notification_update = 0;
-			parameter_name = NULL;
-			parameter_notification = NULL;
-		}
-		if (busy_node &&
-		    busy_node->type == MXML_TEXT &&
-		    busy_node->value.text.string &&
-		    busy_node->parent->type == MXML_ELEMENT &&
-		    !strcmp(busy_node->parent->value.element.name, "Name")) {
-			parameter_name = busy_node->value.text.string;
-		}
-		if (busy_node &&
-		    busy_node->type == MXML_TEXT &&
-		    busy_node->value.text.string &&
-		    busy_node->parent->type == MXML_ELEMENT &&
-		    !strcmp(busy_node->parent->value.element.name, "NotificationChange")) {
-			attr_notification_update = (uint8_t) atoi(busy_node->value.text.string);
-		}
-		if (busy_node &&
-		    busy_node->type == MXML_TEXT &&
-		    busy_node->value.text.string &&
-		    busy_node->parent->type == MXML_ELEMENT &&
-		    !strcmp(busy_node->parent->value.element.name, "Notification")) {
-			parameter_notification = busy_node->value.text.string;
-		}
-		if (attr_notification_update && parameter_name && parameter_notification) {
-			status = cwmp_set_notification_write_handler(parameter_name, parameter_notification);
-			if (status != FC_SUCCESS)
-				goto error_set_notification;
-			attr_notification_update = 0;
-			parameter_name = NULL;
-			parameter_notification = NULL;
-		}
-		busy_node = mxmlWalkNext(busy_node, node, MXML_DESCEND);
-	}
-
-	status = cwmp_set_action_execute_handler();
-	if (status != FC_SUCCESS)
-		goto error_set_notification;
-
-	if (node) {
-		goto done_set_notification;
-	}
 
 download:
 	/* handle cwmp:Download */
@@ -861,20 +871,9 @@ reboot:
 	}
 
 
-error_set_notification:
-	// TODO: just create a message
 error_download:
 error_factory_reset:
 error_reboot:
-	goto create_msg;
-
-done_set_notification:
-	busy_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
-	if (!busy_node)
-		goto error;
-	busy_node = mxmlNewElement(busy_node, "cwmp:SetParameterAttributesResponse");
-	if (!busy_node)
-		goto error;
 	goto create_msg;
 
 
