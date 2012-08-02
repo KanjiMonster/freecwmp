@@ -1,6 +1,7 @@
 config local
 	option interface eth0
 	option port 7547
+	option ubus_socket /var/run/ubus.sock
 	option event bootstrap
 
 config acs

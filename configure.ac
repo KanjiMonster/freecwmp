@@ -55,6 +55,20 @@ AC_SUBST([LIBUBOX_LDFLAGS])
 LIBUBOX_LIBS='-lubox'
 AC_SUBST([LIBUBOX_LIBS])
 
+AC_ARG_WITH([libubus-include-path],
+  [AS_HELP_STRING([--with-libubus-include-path],
+    [location of the libubus library headers, defaults to /usr/include])],
+  [LIBUBUS_CFLAGS="-I$withval"],
+  [LIBUBUS_CFLAGS='-I/usr/include'])
+AC_SUBST([LIBUBUS_CFLAGS])
+
+AC_ARG_WITH([libubus-lib-path],
+  [AS_HELP_STRING([--with-libubus-lib-path], [location of the libubus library])], [LIBUBOX_LDFLAGS="-L$withval"])
+AC_SUBST([LIBUBUS_LDFLAGS])
+
+LIBUBUS_LIBS='-lubus'
+AC_SUBST([LIBUBUS_LIBS])
+
 AM_COND_IF([HTTP_CURL], [
  AC_DEFINE(HTTP_CURL)
  PKG_CHECK_MODULES(LIBCURL, [libcurl])

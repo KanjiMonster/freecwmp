@@ -99,6 +99,24 @@ local_set_port(char *c)
 	FC_DEVEL_DEBUG("exit");
 }
 
+char *
+local_get_ubus_socket(void)
+{
+	FC_DEVEL_DEBUG("enter & exit");
+	return local.ubus_socket;
+}
+
+void
+local_set_ubus_socket(char *c)
+{
+	FC_DEVEL_DEBUG("enter");
+
+	if (local.ubus_socket) free(local.ubus_socket);
+	local.ubus_socket = strdup(c);
+
+	FC_DEVEL_DEBUG("exit");
+}
+
 uint8_t
 local_get_event(void)
 {

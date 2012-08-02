@@ -19,15 +19,18 @@ freecwmpd_SOURCES =		\
 	../src/http/b64.c	\
 	../src/http/http.h	\
 	../src/http/http.c	\
-	../src/xml/xml.h	\
-	../src/xml/xml.c	\
 	../src/mix/time.h	\
-	../src/mix/time.c
+	../src/mix/time.c	\
+	../src/ubus/ubus.h	\
+	../src/ubus/ubus.c	\
+	../src/xml/xml.h	\
+	../src/xml/xml.c
 
 freecwmpd_CFLAGS =		\
 	$(AM_CFLAGS)		\
 	$(LIBUCI_CFLAGS)	\
 	$(LIBUBOX_CFLAGS)	\
+	$(LIBUBUS_CFLAGS)	\
 	$(MICROXML_CFLAGS)	\
 	$(LIBCURL_CFLAGS)	\
 	$(LIBZSTREAM_CFLAGS)
@@ -36,6 +39,7 @@ freecwmpd_LDFLAGS =		\
 	$(AM_LDFLAGS)		\
 	$(LIBUCI_LDFLAGS)	\
 	$(LIBUBOX_LDFLAGS)	\
+	$(LIBUBUS_LDFLAGS)	\
 	$(MICROXML_LDFLAGS)	\
 	$(LIBCURL_LDFLAGS)	\
 	$(LIBZSTREAM_CFLAGS)
@@ -44,6 +48,7 @@ freecwmpd_LDADD =		\
 	$(AM_LIBS)		\
 	$(LIBUCI_LIBS)		\
 	$(LIBUBOX_LIBS)		\
+	$(LIBUBUS_LIBS)		\
 	$(MICROXML_LIBS)	\
 	$(LIBCURL_LIBS)		\
 	$(LIBZSTREAM_LIBS)

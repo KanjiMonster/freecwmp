@@ -26,6 +26,7 @@ static struct cwmp
 	int8_t retry_count;
 	int8_t acs_reload_required;
 	int8_t acs_connection_required;
+	struct list_head notifications;
 } cwmp;
 
 int8_t
@@ -68,6 +69,8 @@ cwmp_init(void)
 #endif
 		goto error;
 	}
+
+	INIT_LIST_HEAD(&cwmp.notifications);
 
 	status = FC_SUCCESS;
 	goto done;
@@ -312,6 +315,8 @@ done_acs:
 		uloop_timeout_set(&cwmp.connection_request_t, 2000);
 	}
 
+	cwmp_clear_notifications();
+
 	status = FC_SUCCESS;
 	goto done;
 
@@ -438,6 +443,59 @@ cwmp_connection_request(void)
 	return status;
 }
 
+void
+cwmp_add_notification(char *parameter, char *value)
+{
+	char *c = NULL;
+	cwmp_get_notification_handler(parameter, &c);
+	if (!c) return;
+
+	bool uniq = true;
+	struct notification *n = NULL;
+	struct list_head *l, *p;
+	list_for_each(p, &cwmp.notifications) {
+		n = list_entry(p, struct notification, list);
+		if (!strcmp(n->parameter, parameter)) {
+			free(n->value);
+			n->value = strdup(value);
+			uniq = false;
+			break;
+		}
+	}
+				
+	if (uniq) {
+		n = calloc(1, sizeof(*n) + sizeof(char *) + strlen(parameter) + strlen(value));
+		if (!n) return;
+
+		list_add_tail(&n->list, &cwmp.notifications);
+		n->parameter = strdup(parameter);
+		n->value = strdup(value);
+	}
+
+	cwmp.event_code = VALUE_CHANGE;
+	if (!strncmp(c, "2", 1)) {
+		cwmp_inform();
+	}
+}
+
+struct list_head *
+cwmp_get_notifications()
+{
+	return &cwmp.notifications;
+}
+
+void
+cwmp_clear_notifications()
+{
+	struct notification *n, *p;
+	list_for_each_entry_safe(n, p, &cwmp.notifications, list) {
+		free(n->parameter);
+		free(n->value);
+		list_del(&n->list);
+		free(n);
+	}
+}
+
 int8_t
 cwmp_set_parameter_write_handler(char *name, char *value)
 {
@@ -523,13 +581,33 @@ cwmp_get_parameter_handler(char *name, char **value)
 
 	int8_t status;
 
-	status = external_get_parameter(name, value);
+	status = external_get_action("value", name, value);
 
 #ifdef DEVEL_DEBUG
 	printf("+++ CWMP HANDLE GET PARAMETER +++\n");
 	printf("Name  : '%s'\n", name);
 	printf("Value : '%s'\n", *value);
 	printf("--- CWMP HANDLE GET PARAMETER ---\n");
+#endif
+
+	FC_DEVEL_DEBUG("exit");
+	return status;
+}
+
+int8_t
+cwmp_get_notification_handler(char *name, char **value)
+{
+	FC_DEVEL_DEBUG("enter");
+
+	int8_t status;
+
+	status = external_get_action("notification", name, value);
+
+#ifdef DEVEL_DEBUG
+	printf("+++ CWMP HANDLE GET NOTIFICATION +++\n");
+	printf("Name  : '%s'\n", name);
+	printf("Value : '%s'\n", *value);
+	printf("+++ CWMP HANDLE GET NOTIFICATION +++\n");
 #endif
 
 	FC_DEVEL_DEBUG("exit");

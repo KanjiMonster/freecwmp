@@ -46,7 +46,7 @@ kill_child_timeout()
 }
 
 int8_t
-external_get_parameter(char *name, char **value)
+external_get_action(char *action, char *name, char **value)
 {
 	FC_DEVEL_DEBUG("enter");
 
@@ -63,13 +63,14 @@ external_get_parameter(char *name, char **value)
 	if (uproc.pid == 0) {
 		/* child */
 
-		const char *argv[7];
+		const char *argv[8];
 		int i = 0;
 		argv[i++] = "/bin/sh";
 		argv[i++] = fc_script;
 		argv[i++] = "--newline";
 		argv[i++] = "--value";
 		argv[i++] = "get";
+		argv[i++] = action;
 		argv[i++] = name;
 		argv[i++] = NULL;
 

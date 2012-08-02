@@ -21,6 +21,7 @@
 #include "config.h"
 #include "cwmp/cwmp.h"
 #include "cwmp/local.h"
+#include "ubus/ubus.h"
 
 static void freecwmp_kickoff(struct uloop_timeout *);
 
@@ -52,6 +53,9 @@ freecwmp_kickoff(struct uloop_timeout *timeout)
 	status = cwmp_init();
 	if (status != FC_SUCCESS)
 		fprintf(stderr, "freecwmp initialization failed\n");
+
+        if (ubus_init())
+		fprintf(stderr, "ubus initialization  failed\n");
 
 	cwmp_inform();
 
@@ -291,5 +295,7 @@ int main (int argc, char **argv)
 	}
 
 	uloop_run();
+	ubus_exit();
+	uloop_done();
 }
 

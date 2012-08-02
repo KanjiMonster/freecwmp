@@ -59,6 +59,14 @@ section_found:
 			goto next;
 		}
 
+		/* ubus socket */
+		status = strcmp((uci_to_option(e))->e.name, "ubus_socket");
+		if (status == FC_SUCCESS) {
+			local_set_ubus_socket((uci_to_option(e))->v.string);
+			n++;
+			goto next;
+		}
+
 		/* event */
 		status = strcmp((uci_to_option(e))->e.name, "event");
 		if (status == FC_SUCCESS) {
@@ -70,8 +78,8 @@ next:
 		;
 	}
 
-	if (n != 2) {
-		fprintf(stderr, "in local you must define source and port...\n");
+	if (n != 3) {
+		fprintf(stderr, "in local you must define source, port and ubus_socket...\n");
 		goto error;
 	}
 

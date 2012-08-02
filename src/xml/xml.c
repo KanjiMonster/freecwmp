@@ -305,6 +305,27 @@ xml_prepare_inform_message(char **msg_out)
 			goto error;
 	}
 
+	/* notifications */
+	struct notification *n;
+	struct list_head *l, *p;
+	l = cwmp_get_notifications();
+	list_for_each(p, l) {
+		n = list_entry(p, struct notification, list);
+
+		tmp = "InternetGatewayDevice.ManagementServer.ConnectionRequestURL";
+		busy_node = mxmlFindElementText(tree, tree, tmp, MXML_DESCEND);
+		if (!busy_node)
+			goto error;
+		
+		busy_node = busy_node->parent->parent->parent;
+		busy_node = mxmlNewElement(busy_node, "ParameterValueStruct");
+		busy_node = mxmlNewElement(busy_node, "Name");
+		busy_node = mxmlNewText(busy_node, 0, n->parameter);
+		busy_node = busy_node->parent->parent;
+		busy_node = mxmlNewElement(busy_node, "Value");
+		busy_node = mxmlNewText(busy_node, 0, n->value);
+	}
+
 	*msg_out = mxmlSaveAllocString(tree, MXML_NO_CALLBACK);
 
 #ifdef DEBUG_SKIP

@@ -16,6 +16,7 @@ struct local
 	char *ip;
 	char *interface;
 	uint16_t port;
+	char *ubus_socket;
 	uint8_t event;
 };
 
@@ -27,6 +28,8 @@ char * local_get_interface(void);
 void local_set_interface(char *c);
 uint16_t local_get_port(void);
 void local_set_port(char *c);
+char * local_get_ubus_socket(void);
+void local_set_ubus_socket(char *c);
 uint8_t local_get_event(void);
 void local_set_event(char *c);
 
