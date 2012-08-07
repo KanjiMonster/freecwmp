@@ -10,7 +10,7 @@
 #ifndef _FREECWMP_UBUS_H__
 #define _FREECWMP_UBUS_H__
 
-bool ubus_init(void);
+int ubus_init(void);
 void ubus_exit(void);
 
 #endif

@@ -9,10 +9,12 @@
 
 #include <unistd.h>
 #include <libubus.h>
+#include <libfreecwmp.h>
 
+#include "../freecwmp.h"
 #include "../cwmp/cwmp.h"
 
-static struct ubus_context *ctx;
+static struct ubus_context *ctx = NULL;
 static struct ubus_watch_object test_event;
 static struct blob_buf b;
 
@@ -34,7 +36,8 @@ freecwmpd_handle_notify(struct ubus_context *ctx, struct ubus_object *obj,
 {
 	struct blob_attr *tb[__NOTIFY_MAX];
 
-	blobmsg_parse(notify_policy, ARRAY_SIZE(notify_policy), tb, blob_data(msg), blob_len(msg));
+	blobmsg_parse(notify_policy, ARRAY_SIZE(notify_policy), tb,
+		      blob_data(msg), blob_len(msg));
 
 	if (!tb[NOTIFY_PARAM])
 		return UBUS_STATUS_INVALID_ARGUMENT;
@@ -42,7 +45,11 @@ freecwmpd_handle_notify(struct ubus_context *ctx, struct ubus_object *obj,
 	if (!tb[NOTIFY_VALUE])
 		return UBUS_STATUS_INVALID_ARGUMENT;
 
-	cwmp_add_notification(blobmsg_data(tb[NOTIFY_PARAM]), blobmsg_data(tb[NOTIFY_VALUE]));
+	freecwmp_log_message(NAME, L_NOTICE,
+			     "triggered ubus notification parameter %s\n",
+			     blobmsg_data(tb[NOTIFY_PARAM]));
+	cwmp_add_notification(blobmsg_data(tb[NOTIFY_PARAM]),
+			      blobmsg_data(tb[NOTIFY_VALUE]));
 
 	return 0;
 }
@@ -61,21 +68,21 @@ static struct ubus_object main_object = {
 	.n_methods = ARRAY_SIZE(freecwmp_methods),
 };
 
-bool
+int
 ubus_init(void)
 {
 	ctx = ubus_connect((char *) local_get_ubus_socket());
-	if (!ctx) return false;
+	if (!ctx) return -1;
 
 	ubus_add_uloop(ctx);
 
-	if (ubus_add_object(ctx, &main_object)) return false;
+	if (ubus_add_object(ctx, &main_object)) return -1;
 
-	return true;
+	return 0;
 }
 
 void
 ubus_exit(void)
 {
-	ubus_free(ctx);
+	if (ctx) ubus_free(ctx);
 }
