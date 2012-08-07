@@ -15,11 +15,9 @@
 static struct uci_context *uci_ctx;
 static struct uci_package *uci_freecwmp;
 
-int8_t
+int
 config_init_local(void)
 {
-	FC_DEVEL_DEBUG("enter");
-
 	int8_t status, n;
 	struct uci_section *s;
 	struct uci_element *e;
@@ -30,9 +28,8 @@ config_init_local(void)
 		if (strcmp(s->type, "local") == 0)
 			goto section_found;
 	}
-	/* section not found ; exit */
-	fprintf(stderr, "uci section local not found...\n");
-	goto error;
+	D("uci section local not found...\n");
+	return -1;
 
 section_found:
 	local_init();
@@ -51,8 +48,8 @@ section_found:
 		status = strcmp((uci_to_option(e))->e.name, "port");
 		if (status == FC_SUCCESS) {
 			if (!atoi((uci_to_option(e))->v.string)) {
-				fprintf(stderr, "in section local port has invalid value...\n");
-				goto error;
+				D("in section local port has invalid value...\n");
+				return -1;
 			}
 			local_set_port((uci_to_option(e))->v.string);
 			n++;
@@ -79,27 +76,16 @@ next:
 	}
 
 	if (n != 3) {
-		fprintf(stderr, "in local you must define source, port and ubus_socket...\n");
-		goto error;
+		D("in local you must define source, port and ubus_socket...\n");
+		return -1;
 	}
 
-	status = FC_SUCCESS;
-	goto done;
-
-error:
-	status = FC_ERROR;
-	goto done;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return 0;
 }
 
-int8_t
+int
 config_init_acs(void)
 {
-	FC_DEVEL_DEBUG("enter");
-
 	int8_t status, n;
 	struct uci_section *s;
 	struct uci_element *e;
@@ -110,9 +96,8 @@ config_init_acs(void)
 		if (strcmp(s->type, "acs") == 0)
 			goto section_found;
 	}
-	/* section not found ; exit */
-	fprintf(stderr, "uci section acs not found...\n");
-	goto error;
+	D("uci section acs not found...\n");
+	return -1;
 
 section_found:
 	acs_init();
@@ -125,8 +110,8 @@ section_found:
 			/* ok, it's late and this does what i need */
 			if (!(!(strcmp((uci_to_option(e))->v.string, "http") == 0) ||
 			    !(strcmp((uci_to_option(e))->v.string, "https") == 0))) {
-				fprintf(stderr, "in section acs scheme should be either http or https...\n");
-				goto error;
+				D("in section acs scheme should be either http or https...\n");
+				return -1;
 			}
 			acs_set_scheme((uci_to_option(e))->v.string);
 			n++;
@@ -161,8 +146,8 @@ section_found:
 		status = strcmp((uci_to_option(e))->e.name, "port");
 		if (status == FC_SUCCESS) {
 			if (!atoi((uci_to_option(e))->v.string)) {
-				fprintf(stderr, "in section acs port has invalid value...\n");
-				goto error;
+				D("in section acs port has invalid value...\n");
+				return -1;
 			}
 			acs_set_port((uci_to_option(e))->v.string);
 			n++;
@@ -206,51 +191,26 @@ next:
 
 	/* TODO: not critical, but watch out */
 	if (n == 6) {
-		status = FC_SUCCESS;
-		goto done;
+		return 0;
 	} else {
-		fprintf(stderr, "in acs are not all options defined...\n");
-		goto error;
+		D("in acs are not all options defined...\n");
+		return -1;
 	}
-
-error:
-	status = FC_ERROR;
-	goto done;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
 }
 
-int8_t
+int
 config_refresh_acs(void)
 {
-	FC_DEVEL_DEBUG("enter");
-
-	int8_t status;
-
 	acs_clean();
-	status = config_reload();
-	if (status != FC_SUCCESS) goto error;
-	status = config_init_acs();
-	if (status != FC_SUCCESS) goto error;
+	if (config_reload()) return -1;
+	if (config_init_acs()) return -1;
 
-	status = FC_SUCCESS;
-	goto done;
-
-error:
-	status = FC_ERROR;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return 0;
 }
 
-int8_t
+int
 config_init_device(void)
 {
-	FC_DEVEL_DEBUG("enter");
-
 	int8_t status;
 	struct uci_section *s;
 	struct uci_element *e;
@@ -260,8 +220,8 @@ config_init_device(void)
 		if (strcmp(s->type, "device") == 0)
 			goto section_found;
 	}
-	/* section not found ; exit */
-	goto error;
+	D("uci section device not found...\n");
+	return -1;
 
 section_found:
 	device_init();
@@ -283,47 +243,22 @@ section_found:
 			device_set_provisioning_code((uci_to_option(e))->v.string);
 	}
 
-	status = FC_SUCCESS;
-	goto done;
-
-error:
-	status = FC_ERROR;
-	goto done;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return 0;
 }
 
-int8_t
+int
 config_refresh_device(void)
 {
-	FC_DEVEL_DEBUG("enter");
-
-	int8_t status;
-
 	device_clean();
-	status = config_reload();
-	if (status != FC_SUCCESS) goto error;
-	status = config_init_device();
-	if (status != FC_SUCCESS) goto error;
+	if (config_reload()) return -1;
+	if (config_init_device()) return -1;
 
-	status = FC_SUCCESS;
-	goto done;
-
-error:
-	status = FC_ERROR;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return 0;
 }
 
 static struct uci_package *
 config_init_package(const char *config)
 {
-	FC_DEVEL_DEBUG("enter");
-
 	struct uci_context *ctx = uci_ctx;
 	struct uci_package *p = NULL;
 
@@ -348,63 +283,35 @@ config_init_package(const char *config)
 		return NULL;
 	}
 
-	FC_DEVEL_DEBUG("exit");
 	return p;
 }
 
-int8_t
+int
 config_reload(void)
 {
-	FC_DEVEL_DEBUG("enter");
-
-	int8_t status;
-
 	if (!uci_ctx) {
 		uci_free_context(uci_ctx);
 		uci_ctx = NULL;
 	}
 	uci_freecwmp = config_init_package("freecwmp");
-	if (!uci_freecwmp) goto error;
+	if (!uci_freecwmp) return -1;
 
-	status = FC_SUCCESS;
-	goto done;
-
-error:
-	status = FC_ERROR;
-	goto done;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return 0;
 }
 
-int8_t
+int
 config_init_all(void)
 {
-	FC_DEVEL_DEBUG("enter");
-
 	int8_t status;
 
 	uci_ctx = NULL;
 	uci_freecwmp = config_init_package("freecwmp");
-	if (!uci_freecwmp) goto error;
+	if (!uci_freecwmp) return -1;
 
-	status = config_init_local();
-	if (status != FC_SUCCESS) goto error;
-	status = config_init_acs();
-	if (status != FC_SUCCESS) goto error;
-	status = config_init_device();
-	if (status != FC_SUCCESS) goto error;
+	if (config_init_local()) return -1;
+	if (config_init_acs()) return -1;
+	if (config_init_device()) return -1;
 
-	status = FC_SUCCESS;
-	goto done;
-
-error:
-	status = FC_ERROR;
-	goto done;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return 0;
 }
 

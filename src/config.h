@@ -10,22 +10,17 @@
 #ifndef _FREECWMP_CONFIG_H__
 #define _FREECWMP_CONFIG_H__
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <uci.h>
 
 #include "freecwmp.h"
 
-static struct uci_package *config_init_package(const char *config);
-
-int8_t config_init_local(void);
-int8_t config_init_acs(void);
-int8_t config_refresh_acs(void);
-int8_t config_init_device(void);
-int8_t config_refresh_device(void);
-int8_t config_reload(void);
-int8_t config_init_all(void);
+int config_init_local(void);
+int config_init_acs(void);
+int config_refresh_acs(void);
+int config_init_device(void);
+int config_refresh_device(void);
+int config_reload(void);
+int config_init_all(void);
 
 #endif
 
