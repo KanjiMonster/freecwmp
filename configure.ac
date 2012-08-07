@@ -22,11 +22,25 @@ AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debugging])], AC_
 AC_ARG_ENABLE(devel_debug, [AS_HELP_STRING([--enable-devel-debug], [enable development debugging messages])], AC_DEFINE(DEVEL_DEBUG),)
 AC_ARG_ENABLE(dummy_mode, [AS_HELP_STRING([--enable-dummy-mode], [enable development mode])], AC_DEFINE(DUMMY_MODE),)
 
-# checks for programs.
+# checks for programs
 AC_PROG_CC
 AM_PROG_CC_C_O
 
-# checks for libraries.
+# checks for libraries
+AC_ARG_WITH([libfreecwmp-include-path],
+  [AS_HELP_STRING([--with-libfreecwmp-include-path],
+    [location of the libfreecwmp library headers, defaults to /usr/include])],
+  [LIBFREECWMP_CFLAGS="-I$withval"],
+  [LIBFREECWMP_CFLAGS='-I/usr/include'])
+AC_SUBST([LIBFREECWMP_CFLAGS])
+
+AC_ARG_WITH([libfreecwmp-lib-path],
+  [AS_HELP_STRING([--with-libfreecwmp-lib-path], [location of the libfreecwmp library])], [LIBFREECWMP_LDFLAGS="-L$withval"])
+AC_SUBST([LIBFREECWMP_LDFLAGS])
+
+LIBFREECWMP_LIBS='-lfreecwmp'
+AC_SUBST([LIBFREECWMP_LIBS])
+
 AC_ARG_WITH([uci-include-path],
   [AS_HELP_STRING([--with-uci-include-path],
     [location of the uci library headers, defaults to /usr/include])],
@@ -98,10 +112,10 @@ AC_SUBST(MICROXML_CFLAGS)
 AC_SUBST(MICROXML_LDFLAGS)
 AC_SUBST(MICROXML_LIBS)
 
-# checks for header files.
+# checks for header files
 AC_CHECK_HEADERS([stdlib.h string.h])
 
-# checks for typedefs, structures, and compiler characteristics.
+# checks for typedefs, structures, and compiler characteristics
 AC_TYPE_UINT8_T
 
 # Makefiles

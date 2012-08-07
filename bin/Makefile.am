@@ -28,6 +28,7 @@ freecwmpd_SOURCES =		\
 
 freecwmpd_CFLAGS =		\
 	$(AM_CFLAGS)		\
+	$(LIBFREECWMP_CFLAGS)	\
 	$(LIBUCI_CFLAGS)	\
 	$(LIBUBOX_CFLAGS)	\
 	$(LIBUBUS_CFLAGS)	\
@@ -37,6 +38,7 @@ freecwmpd_CFLAGS =		\
 
 freecwmpd_LDFLAGS =		\
 	$(AM_LDFLAGS)		\
+	$(LIBFREECWMP_LDLAGS)	\
 	$(LIBUCI_LDFLAGS)	\
 	$(LIBUBOX_LDFLAGS)	\
 	$(LIBUBUS_LDFLAGS)	\
@@ -46,6 +48,7 @@ freecwmpd_LDFLAGS =		\
 
 freecwmpd_LDADD =		\
 	$(AM_LIBS)		\
+	$(LIBFREECWMP_LIBS)	\
 	$(LIBUCI_LIBS)		\
 	$(LIBUBOX_LIBS)		\
 	$(LIBUBUS_LIBS)		\
