@@ -7,6 +7,7 @@
  *	Copyright (C) 2011-2012 Luka Perkov <freecwmp@lukaperkov.net>
  */
 
+#include <string.h>
 #include <libubox/uloop.h>
 
 #include "cwmp.h"

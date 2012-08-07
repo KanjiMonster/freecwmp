@@ -8,6 +8,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "acs.h"
 #include "../config.h"

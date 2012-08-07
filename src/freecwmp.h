@@ -10,16 +10,6 @@
 #ifndef _FREECWMP_FREECWMP_H__
 #define _FREECWMP_FREECWMP_H__
 
-#include <stdint.h>
-#include <ctype.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #define FC_SUCCESS 0
 #define FC_ERROR 1
 

@@ -17,8 +17,6 @@ char local_time[26] = {0};
 
 char * mix_get_time(void)
 {
-	FC_DEVEL_DEBUG("enter");
-
 	time_t t_time;
 	struct tm *t_tm;
 
@@ -35,6 +33,5 @@ char * mix_get_time(void)
 	local_time[22] = ':';
 	local_time[26] = '\0';
 
-	FC_DEVEL_DEBUG("exit");
 	return local_time;
 }

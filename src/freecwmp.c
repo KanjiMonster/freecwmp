@@ -7,6 +7,8 @@
  *	Copyright (C) 2011-2012 Luka Perkov <freecwmp@lukaperkov.net>
  */
 
+#include <stdlib.h>
+#include <string.h>
 #include <syslog.h>
 #include <getopt.h>
 #include <limits.h>
@@ -258,7 +260,7 @@ int main (int argc, char **argv)
 		}
 
 		close(STDIN_FILENO);
-#ifndef DEBUG or DEVEL
+#ifndef DEBUG
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
 #endif
