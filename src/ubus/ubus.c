@@ -12,6 +12,7 @@
 #include <libfreecwmp.h>
 
 #include "../freecwmp.h"
+#include "../config.h"
 #include "../cwmp/cwmp.h"
 
 static struct ubus_context *ctx = NULL;
@@ -71,7 +72,7 @@ static struct ubus_object main_object = {
 int
 ubus_init(void)
 {
-	ctx = ubus_connect((char *) local_get_ubus_socket());
+	ctx = ubus_connect(config->local->ubus_socket);
 	if (!ctx) return -1;
 
 	ubus_add_uloop(ctx);

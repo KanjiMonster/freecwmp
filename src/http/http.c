@@ -32,8 +32,8 @@
 #include "http.h"
 
 #include "../freecwmp.h"
+#include "../config.h"
 #include "../cwmp/cwmp.h"
-#include "../cwmp/local.h"
 #include "../cwmp/acs.h"
 
 static struct http_client http_c;
@@ -317,39 +317,22 @@ http_server_init(void)
 {
 	FC_DEVEL_DEBUG("enter");
 
-	char *ip, port[6];
 	int status;
-
-	ip = local_get_ip();
-	snprintf(port, 6, "%d\0", local_get_port());
 
 	http_s.http_event.cb = http_new_client;
 
-	http_s.http_event.fd = usock(USOCK_TCP | USOCK_SERVER, ip, port);
+	http_s.http_event.fd = usock(USOCK_TCP | USOCK_SERVER, config->local->ip, config->local->port);
 	uloop_fd_add(&http_s.http_event, ULOOP_READ | ULOOP_EDGE_TRIGGER);
 
 #ifdef DEVEL_DEBUG
 	printf("+++ HTTP SERVER CONFIGURATION +++\n");
-	if (ip)
-		printf("IP: '%s'\n", ip);
+	if (config->local->ip)
+		printf("IP: '%s'\n", config->local->ip);
 	else
 		printf("NOT BOUND TO IP\n");
-	printf("PORT: '%s'\n", port);
+	printf("PORT: '%s'\n", config->local->port);
 	printf("--- HTTP SERVER CONFIGURATION ---\n");
 #endif
-
-	status = FC_SUCCESS;
-
-	FC_DEVEL_DEBUG("exit");
-	return status;
-}
-
-int8_t
-http_server_exit(void)
-{
-	FC_DEVEL_DEBUG("enter");
-
-	int status;
 
 	status = FC_SUCCESS;
 
@@ -388,7 +371,7 @@ http_new_client(struct uloop_fd *ufd, unsigned events)
 		}
 
 		if (uproc->pid != 0) {
-			/* parrent */
+			/* parent */
 			/* register an event handler for when the child terminates */
 			uproc->cb = http_del_client;
 			uloop_process_add(uproc);

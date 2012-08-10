@@ -25,7 +25,6 @@
 #include "freecwmp.h"
 #include "config.h"
 #include "cwmp/cwmp.h"
-#include "cwmp/local.h"
 #include "ubus/ubus.h"
 
 static void freecwmp_kickoff(struct uloop_timeout *);
@@ -46,7 +45,6 @@ static void
 freecwmp_kickoff(struct uloop_timeout *timeout)
 {
 	if (cwmp_exit()) D("freecwmp cleaning failed\n");
-	if (config_reload()) D("configuration reload failed\n");
 	if (cwmp_init()) D("freecwmp initialization failed\n");
 	if (ubus_init()) D("ubus initialization failed\n");
 
@@ -79,14 +77,15 @@ freecwmp_netlink_interface(struct nlmsghdr *nlh)
 		}
 
 		if_indextoname(ifa->ifa_index, if_name);
-		if (strncmp(local_get_interface(), if_name, IFNAMSIZ)) {
+		if (strncmp(config->local->interface, if_name, IFNAMSIZ)) {
 			rth = RTA_NEXT(rth, rtl);
 			continue;
 		}
 
 		inet_ntop(AF_INET, &(addr), if_addr, INET_ADDRSTRLEN);
 
-		local_set_ip(if_addr);
+		FREE(config->local->ip);
+		config->local->ip = strdup(if_addr);
 		break;
 	}
 

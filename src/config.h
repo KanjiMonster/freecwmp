@@ -22,5 +22,19 @@ int config_refresh_device(void);
 int config_reload(void);
 int config_init_all(void);
 
+struct local {
+	char *ip;
+	char *interface;
+	char *port;
+	char *ubus_socket;
+	int event;
+};
+
+struct core_config {
+	struct local *local;
+};
+
+extern struct core_config *config;
+
 #endif
 

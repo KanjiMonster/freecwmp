@@ -52,7 +52,6 @@ int8_t http_client_exit(void);
 int8_t http_send_message(char *msg_out, char **msg_in);
 
 int8_t http_server_init(void);
-int8_t http_server_exit(void);
 static void http_new_client(struct uloop_fd *ufd, unsigned events);
 static void http_del_client(struct uloop_process *uproc, int ret);
 

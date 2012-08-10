@@ -22,6 +22,8 @@
 
 #define NAME	"freecwmpd"
 
+#define FREE(x) if (!x) { free(x) ; x = NULL; }
+
 #ifdef DEBUG
 #define D(format, ...) fprintf(stderr, "%s(%d): " format, __func__, __LINE__, ## __VA_ARGS__)
 #else

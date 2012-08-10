@@ -13,6 +13,7 @@
 #include "cwmp.h"
 #include "external.h"
 #include "../freecwmp.h"
+#include "../config.h"
 #include "../http/http.h"
 #include "../xml/xml.h"
 
@@ -43,7 +44,7 @@ cwmp_init(void)
 	cwmp.acs_connection_required = 0;
 	cwmp.periodic_inform_enabled = 0;
 	cwmp.periodic_inform_interval = 0;
-	cwmp.event_code = local_get_event();
+	cwmp.event_code = config->local->event;
 
 	status = cwmp_get_parameter_handler("InternetGatewayDevice.ManagementServer.PeriodicInformInterval", &c);
 	if (status == FC_SUCCESS && c) {
@@ -96,14 +97,6 @@ cwmp_exit()
 	if (status != FC_SUCCESS) {
 #ifdef DEVEL_DEBUG
 		fprintf(stderr, "http_client_exit failed\n");
-#endif
-		goto error;
-	}
-
-	status = http_server_exit();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "http_server_exit failed\n");
 #endif
 		goto error;
 	}
