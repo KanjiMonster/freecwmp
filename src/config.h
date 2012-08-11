@@ -36,6 +36,16 @@ struct acs {
 #endif /* HTTP_CURL */
 };
 
+struct device {
+	char *manufacturer;
+	char *oui;
+	char *product_class;
+	char *serial_number;
+	char *hardware_version;
+	char *software_version;
+	char *provisioning_code;
+};
+
 struct local {
 	char *ip;
 	char *interface;
@@ -46,6 +56,7 @@ struct local {
 
 struct core_config {
 	struct acs *acs;
+	struct device *device;
 	struct local *local;
 };
 

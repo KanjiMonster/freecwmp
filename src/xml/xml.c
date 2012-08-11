@@ -10,9 +10,9 @@
 #include <microxml.h>
 
 #include "../freecwmp.h"
+#include "../config.h"
 #include "../cwmp/cwmp.h"
 #include "../cwmp/messages.h"
-#include "../cwmp/device.h"
 #include "../mix/time.h"
 
 #include "xml.h"
@@ -153,28 +153,28 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = mxmlFindElement(tree, tree, "Manufacturer", NULL, NULL, MXML_DESCEND);
 	if (!busy_node)
 		goto error;
-	busy_node = mxmlNewText(busy_node, 0, device_get_manufacturer());
+	busy_node = mxmlNewText(busy_node, 0, config->device->manufacturer);
 	if (!busy_node)
 		goto error;
 
 	busy_node = mxmlFindElement(tree, tree, "OUI", NULL, NULL, MXML_DESCEND);
 	if (!busy_node)
 		goto error;
-	busy_node = mxmlNewText(busy_node, 0, device_get_oui());
+	busy_node = mxmlNewText(busy_node, 0, config->device->oui);
 	if (!busy_node)
 		goto error;
 
 	busy_node = mxmlFindElement(tree, tree, "ProductClass", NULL, NULL, MXML_DESCEND);
 	if (!busy_node)
 		goto error;
-	busy_node = mxmlNewText(busy_node, 0, device_get_product_class());
+	busy_node = mxmlNewText(busy_node, 0, config->device->product_class);
 	if (!busy_node)
 		goto error;
 
 	busy_node = mxmlFindElement(tree, tree, "SerialNumber", NULL, NULL, MXML_DESCEND);
 	if (!busy_node)
 		goto error;
-	busy_node = mxmlNewText(busy_node, 0, device_get_serial_number());
+	busy_node = mxmlNewText(busy_node, 0, config->device->serial_number);
 	if (!busy_node)
 		goto error;
 
@@ -198,7 +198,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = busy_node->parent->next->next;
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
-	busy_node = mxmlNewText(busy_node, 0, device_get_manufacturer());
+	busy_node = mxmlNewText(busy_node, 0, config->device->manufacturer);
 	if (!busy_node)
 		goto error;
 
@@ -208,7 +208,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = busy_node->parent->next->next;
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
-	busy_node = mxmlNewText(busy_node, 0, device_get_oui());
+	busy_node = mxmlNewText(busy_node, 0, config->device->oui);
 	if (!busy_node)
 		goto error;
 
@@ -218,7 +218,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = busy_node->parent->next->next;
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
-	c = device_get_product_class(); c = c ? c : "";
+	c = config->device->product_class; c = c ? c : "";
 	busy_node = mxmlNewText(busy_node, 0, c);
 	if (!busy_node)
 		goto error;
@@ -229,7 +229,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = busy_node->parent->next->next;
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
-	c = device_get_serial_number(); c = c ? c : "";
+	c = config->device->serial_number; c = c ? c : "";
 	busy_node = mxmlNewText(busy_node, 0, c);
 	if (!busy_node)
 		goto error;
@@ -240,7 +240,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = busy_node->parent->next->next;
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
-	c = device_get_hardware_version(); c = c ? c : "";
+	c = config->device->hardware_version; c = c ? c : "";
 	busy_node = mxmlNewText(busy_node, 0, c);
 	if (!busy_node)
 		goto error;
@@ -251,7 +251,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = busy_node->parent->next->next;
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
-	c = device_get_software_version(); c = c ? c : "";
+	c = config->device->software_version; c = c ? c : "";
 	busy_node = mxmlNewText(busy_node, 0, c);
 	if (!busy_node)
 		goto error;
@@ -262,7 +262,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = busy_node->parent->next->next;
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
-	c = device_get_provisioning_code();
+	c = config->device->provisioning_code;
 	if (c) {
 		busy_node = mxmlNewText(busy_node, 0, c);
 		if (!busy_node)

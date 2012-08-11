@@ -12,7 +12,6 @@
 
 #include "config.h"
 #include "cwmp/cwmp.h"
-#include "cwmp/device.h"
 
 static struct uci_context *uci_ctx;
 static struct uci_package *uci_freecwmp;
@@ -232,7 +231,6 @@ config_refresh_acs(void)
 int
 config_init_device(void)
 {
-	int8_t status;
 	struct uci_section *s;
 	struct uci_element *e;
 
@@ -245,23 +243,50 @@ config_init_device(void)
 	return -1;
 
 section_found:
-	device_init();
-
 	uci_foreach_element(&s->options, e) {
-		if (strcmp((uci_to_option(e))->e.name, "manufacturer") == 0)
-			device_set_manufacturer((uci_to_option(e))->v.string);
-		else if (strcmp((uci_to_option(e))->e.name, "oui") == 0)
-			device_set_oui((uci_to_option(e))->v.string);
-		else if (strcmp((uci_to_option(e))->e.name, "product_class") == 0)
-			device_set_product_class((uci_to_option(e))->v.string);
-		else if (strcmp((uci_to_option(e))->e.name, "serial_number") == 0)
-			device_set_serial_number((uci_to_option(e))->v.string);
-		else if (strcmp((uci_to_option(e))->e.name, "hardware_version") == 0)
-			device_set_hardware_version((uci_to_option(e))->v.string);
-		else if (strcmp((uci_to_option(e))->e.name, "software_version") == 0)
-			device_set_software_version((uci_to_option(e))->v.string);
-		else if (strcmp((uci_to_option(e))->e.name, "provisioning_code") == 0)
-			device_set_provisioning_code((uci_to_option(e))->v.string);
+		if (!strcmp((uci_to_option(e))->e.name, "manufacturer")) {
+			config->device->manufacturer = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@device[0].manufacturer=%s\n", config->device->manufacturer);
+			goto next;
+		}
+
+		if (!strcmp((uci_to_option(e))->e.name, "oui")) {
+			config->device->oui = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@device[0].oui=%s\n", config->device->oui);
+			goto next;
+		}
+
+		if (!strcmp((uci_to_option(e))->e.name, "product_class")) {
+			config->device->product_class = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@device[0].product_class=%s\n", config->device->product_class);
+			goto next;
+		}
+
+		if (!strcmp((uci_to_option(e))->e.name, "serial_number")) {
+			config->device->serial_number = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@device[0].serial_number=%s\n", config->device->serial_number);
+			goto next;
+		}
+
+		if (!strcmp((uci_to_option(e))->e.name, "hardware_version")) {
+			config->device->hardware_version = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@device[0].hardware_version=%s\n", config->device->hardware_version);
+			goto next;
+		}
+
+		if (!strcmp((uci_to_option(e))->e.name, "software_version")) {
+			config->device->software_version = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@device[0].software_version=%s\n", config->device->software_version);
+			goto next;
+		}
+
+		if (!strcmp((uci_to_option(e))->e.name, "provisioning_code")) {
+			config->device->provisioning_code = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@device[0].provisioning_code=%s\n", config->device->provisioning_code);
+			goto next;
+		}
+next:
+		;
 	}
 
 	return 0;
@@ -270,7 +295,6 @@ section_found:
 int
 config_refresh_device(void)
 {
-	device_clean();
 	if (config_reload()) return -1;
 	if (config_init_device()) return -1;
 
@@ -288,6 +312,9 @@ config_init_package(const char *c)
 
 	config->acs = calloc(1, sizeof(struct acs));
 	if (!config->acs) goto error;
+
+	config->device = calloc(1, sizeof(struct device));
+	if (!config->device) goto error;
 
 	config->local = calloc(1, sizeof(struct local));
 	if (!config->local) goto error;
@@ -317,6 +344,7 @@ config_init_package(const char *c)
 
 error:
 	FREE(config->acs)
+	FREE(config->device)
 	FREE(config->local)
 	FREE(config)
 
@@ -342,6 +370,14 @@ config_reload(void)
 	FREE(config->acs->ssl_cacert)
 #endif
 	FREE(config->acs)
+	FREE(config->device->manufacturer)
+	FREE(config->device->oui)
+	FREE(config->device->product_class)
+	FREE(config->device->serial_number)
+	FREE(config->device->hardware_version)
+	FREE(config->device->software_version)
+	FREE(config->device->provisioning_code)
+	FREE(config->device)
 	FREE(config->local->ip)
 	FREE(config->local->interface)
 	FREE(config->local->port)
