@@ -22,6 +22,20 @@ int config_refresh_device(void);
 int config_reload(void);
 int config_init_all(void);
 
+struct acs {
+	char *scheme;
+	char *username;
+	char *password;
+	char *hostname;
+	char *port;
+	char *path;
+#ifdef HTTP_CURL
+	char *ssl_cert;
+	char *ssl_cacert;
+	bool ssl_verify;
+#endif /* HTTP_CURL */
+};
+
 struct local {
 	char *ip;
 	char *interface;
@@ -31,6 +45,7 @@ struct local {
 };
 
 struct core_config {
+	struct acs *acs;
 	struct local *local;
 };
 

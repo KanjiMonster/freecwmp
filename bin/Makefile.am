@@ -9,8 +9,6 @@ freecwmpd_SOURCES =		\
 	../src/cwmp/cwmp.c	\
 	../src/cwmp/external.h	\
 	../src/cwmp/external.c	\
-	../src/cwmp/acs.h	\
-	../src/cwmp/acs.c	\
 	../src/cwmp/device.h	\
 	../src/cwmp/device.c	\
 	../src/http/b64.h	\

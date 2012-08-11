@@ -12,7 +12,6 @@
 
 #include "config.h"
 #include "cwmp/cwmp.h"
-#include "cwmp/acs.h"
 #include "cwmp/device.h"
 
 static struct uci_context *uci_ctx;
@@ -72,14 +71,20 @@ next:
 		;
 	}
 
-	if (!config->local->interface)
-		printf("in local you must define interface\n");
+	if (!config->local->interface) {
+		D("in local you must define interface\n");
+		return -1;
+	}
 
-	if (!config->local->interface)
-		printf("in local you must define port\n");
+	if (!config->local->interface) {
+		D("in local you must define port\n");
+		return -1;
+	}
 
-	if (!config->local->ubus_socket)
-		printf("in local you must define ubus_socket\n");
+	if (!config->local->ubus_socket) {
+		D("in local you must define ubus_socket\n");
+		return -1;
+	}
 
 	return 0;
 }
@@ -87,10 +92,8 @@ next:
 int
 config_init_acs(void)
 {
-	int8_t status, n;
 	struct uci_section *s;
 	struct uci_element *e;
-	n = 0;
 
 	uci_foreach_element(&uci_freecwmp->sections, e) {
 		s = uci_to_section(e);
@@ -101,87 +104,81 @@ config_init_acs(void)
 	return -1;
 
 section_found:
-	acs_init();
-
-	status = FC_SUCCESS;
 	uci_foreach_element(&s->options, e) {
-		/* scheme */
-		status = strcmp((uci_to_option(e))->e.name, "scheme");
-		if (status == FC_SUCCESS) {
-			/* ok, it's late and this does what i need */
-			if (!(!(strcmp((uci_to_option(e))->v.string, "http") == 0) ||
-			    !(strcmp((uci_to_option(e))->v.string, "https") == 0))) {
-				D("in section acs scheme should be either http or https...\n");
+		if (!strcmp((uci_to_option(e))->e.name, "scheme")) {
+			/* TODO: ok, it's late and this does what i need */
+			bool valid = false;
+
+			if (!(strncmp((uci_to_option(e))->v.string, "http\0", 5)))
+				valid = true;
+
+			if (!(strncmp((uci_to_option(e))->v.string, "https\0", 6)))
+				valid = true;
+
+			if (!valid) {
+				D("in section acs scheme must be either http or https...\n");
 				return -1;
 			}
-			acs_set_scheme((uci_to_option(e))->v.string);
-			n++;
+
+			config->acs->scheme = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@acs[0].scheme=%s\n", config->acs->scheme);
 			goto next;
 		}
 
-		/* username */
-		status = strcmp((uci_to_option(e))->e.name, "username");
-		if (status == FC_SUCCESS) {
-			acs_set_username((uci_to_option(e))->v.string);
-			n++;
+		if (!strcmp((uci_to_option(e))->e.name, "username")) {
+			config->acs->username = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@acs[0].username=%s\n", config->acs->username);
 			goto next;
 		}
 
-		/* password */
-		status = strcmp((uci_to_option(e))->e.name, "password");
-		if (status == FC_SUCCESS) {
-			acs_set_password((uci_to_option(e))->v.string);
-			n++;
+		if (!strcmp((uci_to_option(e))->e.name, "password")) {
+			config->acs->password = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@acs[0].password=%s\n", config->acs->password);
 			goto next;
 		}
 
-		/* hostname */
-		status = strcmp((uci_to_option(e))->e.name, "hostname");
-		if (status == FC_SUCCESS) {
-			acs_set_hostname((uci_to_option(e))->v.string);
-			n++;
+		if (!strcmp((uci_to_option(e))->e.name, "hostname")) {
+			config->acs->hostname = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@acs[0].hostname=%s\n", config->acs->hostname);
 			goto next;
 		}
 
-		/* port */
-		status = strcmp((uci_to_option(e))->e.name, "port");
-		if (status == FC_SUCCESS) {
+		if (!strcmp((uci_to_option(e))->e.name, "port")) {
 			if (!atoi((uci_to_option(e))->v.string)) {
 				D("in section acs port has invalid value...\n");
 				return -1;
 			}
-			acs_set_port((uci_to_option(e))->v.string);
-			n++;
+			config->acs->port = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@acs[0].port=%s\n", config->acs->port);
 			goto next;
 		}
 
-		/* path */
-		status = strcmp((uci_to_option(e))->e.name, "path");
-		if (status == FC_SUCCESS) {
-			acs_set_path((uci_to_option(e))->v.string);
-			n++;
+		if (!strcmp((uci_to_option(e))->e.name, "path")) {
+			config->acs->path = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@acs[0].path=%s\n", config->acs->path);
 			goto next;
 		}
 
 #ifdef HTTP_CURL
-		/* ssl_cert */
-		status = strcmp((uci_to_option(e))->e.name, "ssl_cert");
-		if (status == FC_SUCCESS) {
-			acs_set_ssl_cert((uci_to_option(e))->v.string);
+		if (!strcmp((uci_to_option(e))->e.name, "ssl_cert")) {
+			config->acs->ssl_cert = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@acs[0].ssl_cert=%s\n", config->acs->ssl_cert);
 			goto next;
 		}
 
-		/* ssl_cacert */
-		status = strcmp((uci_to_option(e))->e.name, "ssl_cacert");
-		if (status == FC_SUCCESS) {
-			acs_set_ssl_cacert((uci_to_option(e))->v.string);
+		if (!strcmp((uci_to_option(e))->e.name, "ssl_cacert")) {
+			config->acs->ssl_cacert = strdup(uci_to_option(e)->v.string);
+			DD("freecwmp.@acs[0].ssl_cacert=%s\n", config->acs->ssl_cacert);
 			goto next;
 		}
 
-		/* ssl_verify */
-		status = strcmp((uci_to_option(e))->e.name, "ssl_verify");
-		if (status == FC_SUCCESS) {
-			acs_set_ssl_verify((uci_to_option(e))->v.string);
+		if (!strcmp((uci_to_option(e))->e.name, "ssl_verify")) {
+			if (!strcmp((uci_to_option(e))->v.string, "enabled")) {
+				config->acs->ssl_verify = true;
+			} else {
+				config->acs->ssl_verify = false;
+			}
+			DD("freecwmp.@acs[0].ssl_verify=%d\n", config->acs->ssl_verify);
 			goto next;
 		}
 #endif /* HTTP_CURL */
@@ -190,19 +187,42 @@ next:
 		;
 	}
 
-	/* TODO: not critical, but watch out */
-	if (n == 6) {
-		return 0;
-	} else {
-		D("in acs are not all options defined...\n");
+	if (!config->acs->scheme) {
+		D("in acs you must define scheme\n");
 		return -1;
 	}
+
+	if (!config->acs->username) {
+		D("in acs you must define username\n");
+		return -1;
+	}
+
+	if (!config->acs->password) {
+		D("in acs you must define password\n");
+		return -1;
+	}
+
+	if (!config->acs->hostname) {
+		D("in acs you must define hostname\n");
+		return -1;
+	}
+
+	if (!config->acs->port) {
+		D("in acs you must define port\n");
+		return -1;
+	}
+
+	if (!config->acs->path) {
+		D("in acs you must define path\n");
+		return -1;
+	}
+
+	return 0;
 }
 
 int
 config_refresh_acs(void)
 {
-	acs_clean();
 	if (config_reload()) return -1;
 	if (config_init_acs()) return -1;
 
@@ -263,15 +283,18 @@ config_init_package(const char *c)
 	struct uci_context *ctx = uci_ctx;
 	struct uci_package *p = NULL;
 
-	config = malloc(sizeof(struct core_config));
-	if (!config) return NULL;
+	config = calloc(1, sizeof(struct core_config));
+	if (!config) goto error;
 
-	config->local = malloc(sizeof(struct local));
-	if (!config->local) return NULL;
+	config->acs = calloc(1, sizeof(struct acs));
+	if (!config->acs) goto error;
+
+	config->local = calloc(1, sizeof(struct local));
+	if (!config->local) goto error;
 
 	if (!ctx) {
 		ctx = uci_alloc_context();
-		if (!ctx) return NULL;
+		if (!ctx) goto error;
 		uci_ctx = ctx;
 
 #ifdef DUMMY_MODE
@@ -291,6 +314,13 @@ config_init_package(const char *c)
 	}
 
 	return p;
+
+error:
+	FREE(config->acs)
+	FREE(config->local)
+	FREE(config)
+
+	return NULL;
 }
 
 int
@@ -301,6 +331,17 @@ config_reload(void)
 		uci_ctx = NULL;
 	}
 
+	FREE(config->acs->scheme)
+	FREE(config->acs->username)
+	FREE(config->acs->password)
+	FREE(config->acs->hostname)
+	FREE(config->acs->port)
+	FREE(config->acs->path)
+#ifdef HTTP_CURL
+	FREE(config->acs->ssl_cert)
+	FREE(config->acs->ssl_cacert)
+#endif
+	FREE(config->acs)
 	FREE(config->local->ip)
 	FREE(config->local->interface)
 	FREE(config->local->port)

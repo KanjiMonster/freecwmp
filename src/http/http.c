@@ -34,7 +34,6 @@
 #include "../freecwmp.h"
 #include "../config.h"
 #include "../cwmp/cwmp.h"
-#include "../cwmp/acs.h"
 
 static struct http_client http_c;
 static struct http_server http_s;
@@ -45,44 +44,36 @@ http_client_init(void)
 	FC_DEVEL_DEBUG("enter");
 
 	int8_t status;
-	uint8_t len;
-	char *scheme, *username, *password, *hostname, *path;
-	uint16_t port;
-	scheme = acs_get_scheme();
-	username = acs_get_username();
-	password = acs_get_password();
-	hostname = acs_get_hostname();
-	port = acs_get_port();
-	path = acs_get_path();
+	int len;
 
-	len = snprintf(NULL, 0, "%s://%s:%s@%s:%d%s",
-			scheme,
-			username,
-			password,
-			hostname,
-			port,
-			path);
+	len = snprintf(NULL, 0, "%s://%s:%s@%s:%s%s",
+		       config->acs->scheme,
+		       config->acs->username,
+		       config->acs->password,
+		       config->acs->hostname,
+		       config->acs->port,
+		       config->acs->path);
 
 	http_c.url = (char *) calloc((len + 1), sizeof(char));
 	if (errno == ENOMEM)
 		goto error;
-	snprintf(http_c.url, (len + 1), "%s://%s:%s@%s:%d%s\0",
-			scheme,
-			username,
-			password,
-			hostname,
-			port,
-			path);
+	snprintf(http_c.url, (len + 1), "%s://%s:%s@%s:%s%s\0",
+		 config->acs->scheme,
+		 config->acs->username,
+		 config->acs->password,
+		 config->acs->hostname,
+		 config->acs->port,
+		 config->acs->path);
 
 #ifdef DEBUG
 	printf("+++ HTTP CLIENT CONFIGURATION +++\n");
 	printf("URL: '%s'\n", http_c.url);
 # ifdef HTTP_CURL
-	if (acs_get_ssl_cert())
-		printf("ssl_cert: '%s\n", acs_get_ssl_cert());
-	if (acs_get_ssl_cacert())
-		printf("ssl_cacert: '%s\n", acs_get_ssl_cacert());
-	if (!acs_get_ssl_verify())
+	if (config->acs->ssl_cert)
+		printf("ssl_cert: '%s\n", config->acs->ssl_cert);
+	if (config->acs->ssl_cacert)
+		printf("ssl_cacert: '%s\n", config->acs->ssl_cacert);
+	if (!config->acs->ssl_verify)
 		printf("ssl_verify: SSL certificate validation disabled.\n");
 # endif /* HTTP_CURL */
 	printf("--- HTTP CLIENT CONFIGURATION ---\n");
@@ -220,11 +211,11 @@ http_send_message(char *msg_out, char **msg_in)
 	curl_easy_setopt(curl, CURLOPT_COOKIEJAR, fc_cookies);
 
 	/* TODO: test this with real ACS configuration */
-	if (acs_get_ssl_cert())
-		curl_easy_setopt(curl, CURLOPT_SSLCERT, acs_get_ssl_cert());
-	if (acs_get_ssl_cacert())
-		curl_easy_setopt(curl, CURLOPT_CAINFO, acs_get_ssl_cacert());
-	if (!acs_get_ssl_verify())
+	if (config->acs->ssl_cert)
+		curl_easy_setopt(curl, CURLOPT_SSLCERT, config->acs->ssl_cert);
+	if (config->acs->ssl_cacert)
+		curl_easy_setopt(curl, CURLOPT_CAINFO, config->acs->ssl_cacert);
+	if (!config->acs->ssl_verify)
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
 
 	*msg_in = (char *) calloc (1, sizeof(char));
