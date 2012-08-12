@@ -14,13 +14,7 @@
 
 #include "freecwmp.h"
 
-int config_init_local(void);
-int config_init_acs(void);
-int config_refresh_acs(void);
-int config_init_device(void);
-int config_refresh_device(void);
-int config_reload(void);
-int config_init_all(void);
+int config_load(void);
 
 struct acs {
 	char *scheme;

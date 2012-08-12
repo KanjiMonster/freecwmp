@@ -13,12 +13,23 @@
 #include "config.h"
 #include "cwmp/cwmp.h"
 
+static bool first_run = true;
 static struct uci_context *uci_ctx;
 static struct uci_package *uci_freecwmp;
 
 struct core_config *config;
 
-int
+
+static void
+config_free_local(void) {
+	FREE(config->local->ip);
+	FREE(config->local->interface);
+	FREE(config->local->port);
+	FREE(config->local->ubus_socket);
+	FREE(config->local);
+}
+
+static int
 config_init_local(void)
 {
 	struct uci_section *s;
@@ -33,6 +44,8 @@ config_init_local(void)
 	return -1;
 
 section_found:
+	config_free_local();
+
 	uci_foreach_element(&s->options, e) {
 		if (!strcmp((uci_to_option(e))->e.name, "interface")) {
 			config->local->interface = strdup(uci_to_option(e)->v.string);
@@ -88,7 +101,22 @@ next:
 	return 0;
 }
 
-int
+static void
+config_free_acs(void) {
+	FREE(config->acs->scheme);
+	FREE(config->acs->username);
+	FREE(config->acs->password);
+	FREE(config->acs->hostname);
+	FREE(config->acs->port);
+	FREE(config->acs->path);
+#ifdef HTTP_CURL
+	FREE(config->acs->ssl_cert);
+	FREE(config->acs->ssl_cacert);
+#endif
+	FREE(config->acs);
+}
+
+static int
 config_init_acs(void)
 {
 	struct uci_section *s;
@@ -103,6 +131,8 @@ config_init_acs(void)
 	return -1;
 
 section_found:
+	config_free_acs();
+
 	uci_foreach_element(&s->options, e) {
 		if (!strcmp((uci_to_option(e))->e.name, "scheme")) {
 			/* TODO: ok, it's late and this does what i need */
@@ -219,16 +249,20 @@ next:
 	return 0;
 }
 
-int
-config_refresh_acs(void)
+static void
+config_free_device(void)
 {
-	if (config_reload()) return -1;
-	if (config_init_acs()) return -1;
-
-	return 0;
+	FREE(config->device->manufacturer);
+	FREE(config->device->oui);
+	FREE(config->device->product_class);
+	FREE(config->device->serial_number);
+	FREE(config->device->hardware_version);
+	FREE(config->device->software_version);
+	FREE(config->device->provisioning_code);
+	FREE(config->device);
 }
 
-int
+static int
 config_init_device(void)
 {
 	struct uci_section *s;
@@ -243,6 +277,8 @@ config_init_device(void)
 	return -1;
 
 section_found:
+	config_free_device();
+
 	uci_foreach_element(&s->options, e) {
 		if (!strcmp((uci_to_option(e))->e.name, "manufacturer")) {
 			config->device->manufacturer = strdup(uci_to_option(e)->v.string);
@@ -292,32 +328,25 @@ next:
 	return 0;
 }
 
-int
-config_refresh_device(void)
-{
-	if (config_reload()) return -1;
-	if (config_init_device()) return -1;
-
-	return 0;
-}
-
 static struct uci_package *
 config_init_package(const char *c)
 {
 	struct uci_context *ctx = uci_ctx;
 	struct uci_package *p = NULL;
 
-	config = calloc(1, sizeof(struct core_config));
-	if (!config) goto error;
+	if (first_run) {
+		config = calloc(1, sizeof(struct core_config));
+		if (!config) goto error;
 
-	config->acs = calloc(1, sizeof(struct acs));
-	if (!config->acs) goto error;
+		config->acs = calloc(1, sizeof(struct acs));
+		if (!config->acs) goto error;
 
-	config->device = calloc(1, sizeof(struct device));
-	if (!config->device) goto error;
+		config->device = calloc(1, sizeof(struct device));
+		if (!config->device) goto error;
 
-	config->local = calloc(1, sizeof(struct local));
-	if (!config->local) goto error;
+		config->local = calloc(1, sizeof(struct local));
+		if (!config->local) goto error;
+	}
 
 	if (!ctx) {
 		ctx = uci_alloc_context();
@@ -343,66 +372,30 @@ config_init_package(const char *c)
 	return p;
 
 error:
-	FREE(config->acs)
-	FREE(config->device)
-	FREE(config->local)
-	FREE(config)
+	FREE(config->acs);
+	FREE(config->device);
+	FREE(config->local);
+	FREE(config);
 
 	return NULL;
 }
 
 int
-config_reload(void)
+config_load(void)
 {
-	if (!uci_ctx) {
+	if (!first_run && !uci_ctx) {
 		uci_free_context(uci_ctx);
 		uci_ctx = NULL;
 	}
 
-	FREE(config->acs->scheme)
-	FREE(config->acs->username)
-	FREE(config->acs->password)
-	FREE(config->acs->hostname)
-	FREE(config->acs->port)
-	FREE(config->acs->path)
-#ifdef HTTP_CURL
-	FREE(config->acs->ssl_cert)
-	FREE(config->acs->ssl_cacert)
-#endif
-	FREE(config->acs)
-	FREE(config->device->manufacturer)
-	FREE(config->device->oui)
-	FREE(config->device->product_class)
-	FREE(config->device->serial_number)
-	FREE(config->device->hardware_version)
-	FREE(config->device->software_version)
-	FREE(config->device->provisioning_code)
-	FREE(config->device)
-	FREE(config->local->ip)
-	FREE(config->local->interface)
-	FREE(config->local->port)
-	FREE(config->local->ubus_socket)
-	FREE(config->local)
-	FREE(config)
-
-	uci_freecwmp = config_init_package("freecwmp");
-	if (!uci_freecwmp) return -1;
-
-	return 0;
-}
-
-int
-config_init_all(void)
-{
-	int8_t status;
-
-	uci_ctx = NULL;
 	uci_freecwmp = config_init_package("freecwmp");
 	if (!uci_freecwmp) return -1;
 
 	if (config_init_local()) return -1;
 	if (config_init_acs()) return -1;
 	if (config_init_device()) return -1;
+
+	first_run == false;
 
 	return 0;
 }

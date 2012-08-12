@@ -26,7 +26,7 @@ static struct cwmp
 	int64_t periodic_inform_interval;
 	struct uloop_timeout acs_error_t;
 	int8_t retry_count;
-	int8_t acs_reload_required;
+	bool config_reload;
 	int8_t acs_connection_required;
 	struct list_head notifications;
 } cwmp;
@@ -40,7 +40,7 @@ cwmp_init(void)
 	char *c = NULL;
 
 	cwmp.retry_count = 0;
-	cwmp.acs_reload_required = 0;
+	cwmp.config_reload = false;
 	cwmp.acs_connection_required = 0;
 	cwmp.periodic_inform_enabled = 0;
 	cwmp.periodic_inform_interval = 0;
@@ -505,16 +505,16 @@ cwmp_set_parameter_write_handler(char *name, char *value)
 #endif
 
 	if((strcmp(name, "InternetGatewayDevice.ManagementServer.Username")) == 0) {
-		cwmp.acs_reload_required = 1;
+		cwmp.config_reload = true;
 	}
 
 	if((strcmp(name, "InternetGatewayDevice.ManagementServer.Password")) == 0) {
-		cwmp.acs_reload_required = 1;
+		cwmp.config_reload = true;
 	}
 
 	if((strcmp(name, "InternetGatewayDevice.ManagementServer.URL")) == 0) {
 		cwmp.event_code = VALUE_CHANGE;
-		cwmp.acs_reload_required = 1;
+		cwmp.config_reload = true;
 		cwmp.acs_connection_required = 1; 
 	}
 
@@ -667,11 +667,11 @@ cwmp_reload_changes(void)
 
 	int8_t status;
 
-	if (cwmp.acs_reload_required) {
-		status = config_refresh_acs();
+	if (cwmp.config_reload) {
+		status = config_load();
 		if (status != FC_SUCCESS)
 			goto done;
-		cwmp.acs_reload_required = 0;
+		cwmp.config_reload = 0;
 	}
 
 	status = FC_SUCCESS;

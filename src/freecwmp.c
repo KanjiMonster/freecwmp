@@ -224,7 +224,7 @@ int main (int argc, char **argv)
 
 	uloop_init();
 
-	if (config_init_all()) {
+	if (config_load()) {
 		D("configuration initialization failed\n");
 		exit(EXIT_FAILURE);
 	}
