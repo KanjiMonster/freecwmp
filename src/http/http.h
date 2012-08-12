@@ -47,11 +47,11 @@ struct http_server
 static size_t http_get_response(void *buffer, size_t size, size_t rxed, char **msg_in);
 #endif /* HTTP_CURL */
 
-int8_t http_client_init(void);
-int8_t http_client_exit(void);
+int http_client_init(void);
+void http_client_exit(void);
 int8_t http_send_message(char *msg_out, char **msg_in);
 
-int8_t http_server_init(void);
+void http_server_init(void);
 static void http_new_client(struct uloop_fd *ufd, unsigned events);
 static void http_del_client(struct uloop_process *uproc, int ret);
 

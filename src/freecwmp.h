@@ -32,8 +32,10 @@
 
 #ifdef DEVEL
 #define DD(format, ...) fprintf(stderr, "%s(%d):: " format, __func__, __LINE__, ## __VA_ARGS__)
+#define DDF(format, ...) fprintf(stderr, format, ## __VA_ARGS__)
 #else
 #define DD(format, ...) no_debug(0, format, ## __VA_ARGS__)
+#define DDF(format, ...) no_debug(0, format, ## __VA_ARGS__)
 #endif
 
 static inline void no_debug(int level, const char *fmt, ...)

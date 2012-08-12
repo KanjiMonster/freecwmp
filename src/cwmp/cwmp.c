@@ -7,6 +7,7 @@
  *	Copyright (C) 2011-2012 Luka Perkov <freecwmp@lukaperkov.net>
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <libubox/uloop.h>
 
@@ -64,13 +65,7 @@ cwmp_init(void)
 		free(c); c = NULL;
 	}
 
-	status = http_server_init();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "http_server_init failed\n");
-#endif
-		goto error;
-	}
+	http_server_init();
 
 	INIT_LIST_HEAD(&cwmp.notifications);
 
@@ -93,13 +88,7 @@ cwmp_exit()
 
 	int8_t status;
 
-	status = http_client_exit();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "http_client_exit failed\n");
-#endif
-		goto error;
-	}
+	http_client_exit();
 
 	status = xml_exit();
 	if (status != FC_SUCCESS) {
@@ -128,14 +117,7 @@ cwmp_reload_http_client(void)
 
 	int8_t status;
 
-	status = http_client_exit();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "http_client_exit failed\n");
-#endif
-		goto error;
-	}
-
+	http_client_exit();
 	status = http_client_init();
 	if (status != FC_SUCCESS) {
 #ifdef DEVEL_DEBUG
@@ -288,14 +270,7 @@ done_acs:
 		goto error;
 	}
 
-	status = http_client_exit();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "http_client_exit failed\n");
-#endif
-		goto error;
-	}
-
+	http_client_exit();
 	status = xml_exit();
 	if (status != FC_SUCCESS) {
 #ifdef DEVEL_DEBUG
