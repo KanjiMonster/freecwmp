@@ -44,10 +44,9 @@ print_help(void)
 static void
 freecwmp_kickoff(struct uloop_timeout *timeout)
 {
-	if (cwmp_exit()) D("freecwmp cleaning failed\n");
-	if (cwmp_init()) D("freecwmp initialization failed\n");
+	cwmp_exit();
+	cwmp_init();
 	if (ubus_init()) D("ubus initialization failed\n");
-
 	cwmp_inform();
 }
 

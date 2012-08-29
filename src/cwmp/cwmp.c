@@ -18,8 +18,7 @@
 #include "../http/http.h"
 #include "../xml/xml.h"
 
-static struct cwmp
-{
+static struct cwmp {
 	enum cwmp_event_code event_code;
 	struct uloop_timeout connection_request_t;
 	struct uloop_timeout periodic_inform_t;
@@ -32,152 +31,10 @@ static struct cwmp
 	struct list_head notifications;
 } cwmp;
 
-int8_t
-cwmp_init(void)
-{
-	FC_DEVEL_DEBUG("enter");
-
-	int8_t status;
-	char *c = NULL;
-
-	cwmp.retry_count = 0;
-	cwmp.config_reload = false;
-	cwmp.acs_connection_required = 0;
-	cwmp.periodic_inform_enabled = 0;
-	cwmp.periodic_inform_interval = 0;
-	cwmp.event_code = config->local->event;
-
-	status = cwmp_get_parameter_handler("InternetGatewayDevice.ManagementServer.PeriodicInformInterval", &c);
-	if (status == FC_SUCCESS && c) {
-		cwmp.periodic_inform_interval = atoi(c);
-		cwmp.periodic_inform_t.cb = cwmp_periodic_inform;
-		uloop_timeout_set(&cwmp.periodic_inform_t, cwmp.periodic_inform_interval * 1000);
-	}
-	if (c) {
-		free(c); c = NULL;
-	}
-
-	status = cwmp_get_parameter_handler("InternetGatewayDevice.ManagementServer.PeriodicInformEnable", &c);
-	if (status == FC_SUCCESS && c) {
-		cwmp.periodic_inform_enabled = atoi(c);
-	}
-	if (c) {
-		free(c); c = NULL;
-	}
-
-	http_server_init();
-
-	INIT_LIST_HEAD(&cwmp.notifications);
-
-	status = FC_SUCCESS;
-	goto done;
-	
-error:
-	status = FC_ERROR;
-	goto done;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
-}
-
-int8_t
-cwmp_exit()
-{
-	FC_DEVEL_DEBUG("enter");
-
-	int8_t status;
-
-	http_client_exit();
-
-	status = xml_exit();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "xml_exit failed\n");
-#endif
-		goto error;
-	}
-
-	status = FC_SUCCESS;
-	goto done;
-	
-error:
-	status = FC_ERROR;
-	goto done;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
-}
-
-int8_t
-cwmp_reload_http_client(void)
-{
-	FC_DEVEL_DEBUG("enter");
-
-	int8_t status;
-
-	http_client_exit();
-	status = http_client_init();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "http_client_init failed\n");
-#endif
-		goto error;
-	}
-
-	status = FC_SUCCESS;
-	goto done;
-	
-error:
-	status = FC_ERROR;
-	goto done;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
-}
-
-int8_t
-cwmp_reload_xml(void)
-{
-	FC_DEVEL_DEBUG("enter");
-
-	int8_t status;
-
-	status = xml_exit();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "xml_exit failed\n");
-#endif
-		goto error;
-	}
-
-	status = xml_init();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "xml_init failed\n");
-#endif
-		goto error;
-	}
-
-	status = FC_SUCCESS;
-	goto done;
-	
-error:
-	status = FC_ERROR;
-	goto done;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
-}
-
 
 static void
 cwmp_periodic_inform(struct uloop_timeout *timeout)
 {
-	FC_DEVEL_DEBUG("enter & exit");
 	if (cwmp.periodic_inform_enabled && cwmp.periodic_inform_interval) {
 		cwmp.periodic_inform_t.cb = cwmp_periodic_inform;
 		uloop_timeout_set(&cwmp.periodic_inform_t, cwmp.periodic_inform_interval * 1000);
@@ -188,96 +45,83 @@ cwmp_periodic_inform(struct uloop_timeout *timeout)
 		cwmp_inform();
 }
 
-int8_t
+void
+cwmp_init(void)
+{
+	char *c = NULL;
+
+	cwmp.retry_count = 0;
+	cwmp.config_reload = false;
+	cwmp.acs_connection_required = 0;
+	cwmp.periodic_inform_enabled = 0;
+	cwmp.periodic_inform_interval = 0;
+	cwmp.event_code = config->local->event;
+
+	cwmp_get_parameter_handler("InternetGatewayDevice.ManagementServer.PeriodicInformInterval", &c);
+	if (c) {
+		cwmp.periodic_inform_interval = atoi(c);
+		cwmp.periodic_inform_t.cb = cwmp_periodic_inform;
+		uloop_timeout_set(&cwmp.periodic_inform_t, cwmp.periodic_inform_interval * 1000);
+	}
+	FREE(c);
+
+	cwmp_get_parameter_handler("InternetGatewayDevice.ManagementServer.PeriodicInformEnable", &c);
+	if (c) {
+		cwmp.periodic_inform_enabled = atoi(c);
+	}
+	FREE(c);
+
+	http_server_init();
+
+	INIT_LIST_HEAD(&cwmp.notifications);
+}
+
+void
+cwmp_exit(void)
+{
+	http_client_exit();
+	xml_exit();
+}
+
+int
 cwmp_inform(void)
 {
-	FC_DEVEL_DEBUG("enter");
-
-	int8_t status;
 	char *msg_in, *msg_out;
 	msg_in = msg_out = NULL;
 	cwmp.acs_connection_required = 0;
 
-	status = http_client_init();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "http_client_init failed\n");
-#endif
+	if (http_client_init()) {
+		D("initializing http client failed\n");
 		goto error;
 	}
 
-	status = xml_init();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "xml_init failed\n");
-#endif
+	if (xml_prepare_inform_message(&msg_out)) {
+		D("xml message creating failed\n");
 		goto error;
 	}
 
-	status = xml_prepare_inform_message(&msg_out);
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "xml_prepare_inform_message failed\n");
-#endif
-		goto error_xml;
-	}
-
-	status = http_send_message(msg_out, &msg_in);
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "http_send_message failed\n");
-#endif
-		goto error_http;
+	if (http_send_message(msg_out, &msg_in)) {
+		D("sending http message failed\n");
+		goto error;
 	}
 	
-	if (!msg_in) {
-		/*
-		 * if ACS has sent empty response we'll skip
-		 * xml_parse_inform_response_message
-		 */
-		goto done_acs;
+	if (msg_in && xml_parse_inform_response_message(msg_in, &msg_out)) {
+		D("parse xml message from ACS failed\n");
+		goto error;
 	}
 
-	if (msg_out) {
-		free(msg_out);
-		msg_out = NULL;
-	}
+	FREE(msg_in);
+	FREE(msg_out);
 
-	status = xml_parse_inform_response_message(msg_in, &msg_out);
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "xml_parse_inform_response_message failed\n");
-#endif
-		goto error_xml;
-	}
-
-	if (msg_in) {
-		free(msg_in);
-		msg_in = NULL;
-	}
-done_acs:
-	if (msg_out) {
-		free(msg_out);
-		msg_out = NULL;
-	}
 	cwmp.retry_count = 0;
 
-	status = cwmp_handle_messages();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "cwmp_handle_messages failed\n");
-#endif
+	if (cwmp_handle_messages()) {
+		D("handling xml message failed\n");
 		goto error;
 	}
 
 	http_client_exit();
-	status = xml_exit();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "xml_exit failed\n");
-#endif
-		goto error;
-	}
+	xml_exit();
 
 	if (cwmp.acs_connection_required) {
 		cwmp.connection_request_t.cb = cwmp_inform;
@@ -286,35 +130,15 @@ done_acs:
 
 	cwmp_clear_notifications();
 
-	status = FC_SUCCESS;
-	goto done;
+	return 0;
 
-error_xml:
-	status = cwmp_reload_xml();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "cwmp_reload_xml failed\n");
-#endif
-		goto error;
-	}
-	
-error_http:
-	status = cwmp_reload_http_client();
-	if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-		fprintf(stderr, "cwmp_reload_http_client failed\n");
-#endif
-		goto error;
-	}
 error:
-	if (msg_in) {
-		free(msg_in);
-		msg_in = NULL;
-	}
-	if (msg_out) {
-		free(msg_out);
-		msg_out = NULL;
-	}
+	FREE(msg_in);
+	FREE(msg_out);
+
+	http_client_exit();
+	xml_exit();
+
 	cwmp.acs_error_t.cb = cwmp_inform;
 	if (cwmp.retry_count < 100) {
 		cwmp.retry_count++;
@@ -323,79 +147,51 @@ error:
 		/* try every 20 minutes */
 		uloop_timeout_set(&cwmp.acs_error_t, 1200000);
 	}
-	goto done;
 
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return -1;
 }
 
-int8_t
+int
 cwmp_handle_messages(void)
 {
-	FC_DEVEL_DEBUG("enter");
-
 	int8_t status;
 	char *msg_in, *msg_out;
 	msg_in = msg_out = NULL;
 
 	while (1) {
+		FREE(msg_in);
 
-		if (msg_in) {
-			free(msg_in);
-			msg_in = NULL;
-		}
-
-		status = http_send_message(msg_out, &msg_in);
-		if (status != FC_SUCCESS) {
-#ifdef DEVEL_DEBUG
-			fprintf(stderr, "cwmp_send_message failed\n");
-#endif
+		if (http_send_message(msg_out, &msg_in)) {
+			D("sending http message failed\n");
 			goto error;
 		}
 
 		if (!msg_in)
 			break;
 
-		if (msg_out) {
-			free(msg_out);
-			msg_out = NULL;
+		FREE(msg_out);
+
+		if (xml_handle_message(msg_in, &msg_out)) {
+			D("xml handling message failed\n");
+			goto error;
 		}
 
-		xml_handle_message(msg_in, &msg_out);
 		if (!msg_out) {
-#ifdef DEVEL_DEBUG
-			fprintf(stderr, "xml_handle_message failed\n");
-#endif
+			D("acs response message is empty\n");
 			goto error;
 		}
 	}
 
-	/* checking should not be needed; but to be safe... */
-	if (msg_in) {
-		free(msg_in);
-		msg_in = NULL;
-	}
-	if (msg_out) {
-		free(msg_out);
-		msg_out = NULL;
-	}
+	FREE(msg_in);
+	FREE(msg_out);
 
-	status = FC_SUCCESS;
-	goto done;
+	return 0;
 
 error:
-	if (msg_in)
-		free(msg_in);
-	if (msg_out)
-		free(msg_out);
-	status = FC_ERROR;
-	goto done;
+	FREE(msg_in);
+	FREE(msg_out);
 
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return -1;
 }
 
 int8_t
@@ -454,7 +250,7 @@ cwmp_get_notifications()
 }
 
 void
-cwmp_clear_notifications()
+cwmp_clear_notifications(void)
 {
 	struct notification *n, *p;
 	list_for_each_entry_safe(n, p, &cwmp.notifications, list) {

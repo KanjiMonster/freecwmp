@@ -12,18 +12,17 @@
 
 #include <libubox/uloop.h>
 
-enum cwmp_event_code 
-{ 
- 	BOOTSTRAP = 0, 
-	BOOT, 
-	PERIODIC, 
-	SCHEDULED, 
-	VALUE_CHANGE, 
-	KICKED, 
-	CONNECTION_REQUEST, 
-	TRANSFER_COMPLETE, 
-	DIAGNOSTICS_COMPLETE, 
-	REQUEST_DOWNLOAD, 
+enum cwmp_event_code { 
+ 	BOOTSTRAP = 0,
+	BOOT,
+	PERIODIC,
+	SCHEDULED,
+	VALUE_CHANGE,
+	KICKED,
+	CONNECTION_REQUEST,
+	TRANSFER_COMPLETE,
+	DIAGNOSTICS_COMPLETE,
+	REQUEST_DOWNLOAD,
 	AUTONOMOUS_TRANSFER_COMPLETE 
 }; 
 
@@ -34,14 +33,10 @@ struct notification {
 	char *value;
 };
 
-static void cwmp_periodic_inform(struct uloop_timeout *);
-
-int8_t cwmp_init(void);
-int8_t cwmp_exit(void);
-int8_t cwmp_reload_http_client(void);
-int8_t cwmp_reload_xml(void);
-int8_t cwmp_inform(void);
-int8_t cwmp_handle_messages(void);
+void cwmp_init(void);
+void cwmp_exit(void);
+int cwmp_inform(void);
+int cwmp_handle_messages(void);
 int8_t cwmp_connection_request(void);
 void cwmp_add_notification(char *parameter, char *value);
 struct list_head * cwmp_get_notifications();
@@ -50,7 +45,7 @@ int8_t cwmp_set_parameter_write_handler(char *name, char *value);
 int8_t cwmp_set_action_execute_handler();
 int8_t cwmp_get_parameter_handler(char *name, char **value);
 int8_t cwmp_get_notification_handler(char *name, char **value);
-void cwmp_clear_notifications();
+void cwmp_clear_notifications(void);
 int8_t cwmp_download_handler(char *url, char *size);
 int8_t cwmp_reboot_handler(void);
 int8_t cwmp_factory_reset_handler(void);
