@@ -352,6 +352,7 @@ done:
 	return status;
 }
 
+// TODO: msg_out is not used remove it
 int8_t
 xml_parse_inform_response_message(char *msg_in, char **msg_out)
 {
