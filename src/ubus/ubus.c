@@ -55,8 +55,41 @@ freecwmpd_handle_notify(struct ubus_context *ctx, struct ubus_object *obj,
 	return 0;
 }
 
+static enum inform {
+	INFORM_EVENT,
+	__INFORM_MAX
+};
+
+static const struct blobmsg_policy inform_policy[] = {
+	[INFORM_EVENT] = { .name = "event", .type = BLOBMSG_TYPE_STRING },
+};
+
+static int
+freecwmpd_handle_inform(struct ubus_context *ctx, struct ubus_object *obj,
+			struct ubus_request_data *req, const char *method,
+			struct blob_attr *msg)
+{
+	int tmp;
+	struct blob_attr *tb[__INFORM_MAX];
+
+	blobmsg_parse(inform_policy, ARRAY_SIZE(inform_policy), tb,
+		      blob_data(msg), blob_len(msg));
+
+	if (!tb[INFORM_EVENT])
+		return UBUS_STATUS_INVALID_ARGUMENT;
+
+	freecwmp_log_message(NAME, L_NOTICE,
+			     "triggered ubus inform %s\n",
+			     blobmsg_data(tb[INFORM_EVENT]));
+	tmp = freecwmp_int_event_code(blobmsg_data(tb[INFORM_EVENT]));
+	cwmp_connection_request(tmp);
+
+	return 0;
+}
+
 static const struct ubus_method freecwmp_methods[] = {
 	UBUS_METHOD("notify", freecwmpd_handle_notify, notify_policy),
+	UBUS_METHOD("inform", freecwmpd_handle_inform, inform_policy),
 };
 
 static struct ubus_object_type main_object_type =

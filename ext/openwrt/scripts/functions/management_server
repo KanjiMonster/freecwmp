@@ -40,6 +40,8 @@ set_management_server_x_freecwmp_org__acs_scheme $scheme
 set_management_server_x_freecwmp_org__acs_hostname $hostname
 set_management_server_x_freecwmp_org__acs_port $port
 set_management_server_x_freecwmp_org__acs_path $path
+
+ubus ${UBUS_SOCKET:+-s $UBUS_SOCKET} call tr069 inform '{ "event": "value_change" }' &
 }
 
 get_management_server_username() {

@@ -12,20 +12,6 @@
 
 #include <libubox/uloop.h>
 
-enum cwmp_event_code { 
- 	BOOTSTRAP = 0,
-	BOOT,
-	PERIODIC,
-	SCHEDULED,
-	VALUE_CHANGE,
-	KICKED,
-	CONNECTION_REQUEST,
-	TRANSFER_COMPLETE,
-	DIAGNOSTICS_COMPLETE,
-	REQUEST_DOWNLOAD,
-	AUTONOMOUS_TRANSFER_COMPLETE 
-}; 
-
 struct notification {
 	struct list_head list;
 
@@ -37,7 +23,7 @@ void cwmp_init(void);
 void cwmp_exit(void);
 int cwmp_inform(void);
 int cwmp_handle_messages(void);
-int8_t cwmp_connection_request(void);
+void cwmp_connection_request(int code);
 void cwmp_add_notification(char *parameter, char *value);
 struct list_head * cwmp_get_notifications();
 int8_t cwmp_set_notification_write_handler(char *name, char *value);

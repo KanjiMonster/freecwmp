@@ -420,7 +420,7 @@ http_del_client(struct uloop_process *uproc, int ret)
 	if (WIFEXITED(ret) && WEXITSTATUS(ret) == 0) {
 		DDF("+++ HTTP SERVER CONNECTION SUCCESS +++\n");
 		freecwmp_log_message(NAME, L_NOTICE, "acs initiated connection");
-		cwmp_connection_request();
+		cwmp_connection_request(CONNECTION_REQUEST);
 	} else {
 		DDF("+++ HTTP SERVER CONNECTION FAILED +++\n");
 	}

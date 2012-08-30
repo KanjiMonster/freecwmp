@@ -31,4 +31,5 @@ run freecwmpd
 =============
 
 $ export UCI_CONFIG_DIR="`pwd`/ext/openwrt/config/" 
+$ export UBUS_SOCKET="/tmp/ubus.sock"
 $ ./bin/freecwmpd -f

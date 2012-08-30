@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <libfreecwmp.h>
 #include <libubox/uloop.h>
 
 #include "cwmp.h"
@@ -19,7 +20,7 @@
 #include "../xml/xml.h"
 
 static struct cwmp {
-	enum cwmp_event_code event_code;
+	int event_code;
 	struct uloop_timeout connection_request_t;
 	struct uloop_timeout periodic_inform_t;
 	int8_t periodic_inform_enabled;
@@ -27,7 +28,6 @@ static struct cwmp {
 	struct uloop_timeout acs_error_t;
 	int8_t retry_count;
 	bool config_reload;
-	int8_t acs_connection_required;
 	struct list_head notifications;
 } cwmp;
 
@@ -52,7 +52,6 @@ cwmp_init(void)
 
 	cwmp.retry_count = 0;
 	cwmp.config_reload = false;
-	cwmp.acs_connection_required = 0;
 	cwmp.periodic_inform_enabled = 0;
 	cwmp.periodic_inform_interval = 0;
 	cwmp.event_code = config->local->event;
@@ -88,7 +87,6 @@ cwmp_inform(void)
 {
 	char *msg_in, *msg_out;
 	msg_in = msg_out = NULL;
-	cwmp.acs_connection_required = 0;
 
 	if (http_client_init()) {
 		D("initializing http client failed\n");
@@ -120,15 +118,9 @@ cwmp_inform(void)
 		goto error;
 	}
 
+	cwmp_clear_notifications();
 	http_client_exit();
 	xml_exit();
-
-	if (cwmp.acs_connection_required) {
-		cwmp.connection_request_t.cb = cwmp_inform;
-		uloop_timeout_set(&cwmp.connection_request_t, 2000);
-	}
-
-	cwmp_clear_notifications();
 
 	return 0;
 
@@ -194,18 +186,12 @@ error:
 	return -1;
 }
 
-int8_t
-cwmp_connection_request(void)
+void
+cwmp_connection_request(int code)
 {
-	FC_DEVEL_DEBUG("enter");
-
-	int8_t status;
-
-	cwmp.event_code = CONNECTION_REQUEST;
-	status = cwmp_inform();
-
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	cwmp.event_code = code;
+	cwmp.connection_request_t.cb = cwmp_inform;
+	uloop_timeout_set(&cwmp.connection_request_t, 500);
 }
 
 void
@@ -286,7 +272,6 @@ cwmp_set_parameter_write_handler(char *name, char *value)
 	if((strcmp(name, "InternetGatewayDevice.ManagementServer.URL")) == 0) {
 		cwmp.event_code = VALUE_CHANGE;
 		cwmp.config_reload = true;
-		cwmp.acs_connection_required = 1; 
 	}
 
 	if((strcmp(name, "InternetGatewayDevice.ManagementServer.PeriodicInformEnable")) == 0) {

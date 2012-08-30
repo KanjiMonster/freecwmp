@@ -70,11 +70,8 @@ section_found:
 		}
 
 		if (!strcmp((uci_to_option(e))->e.name, "event")) {
-			if (!strcasecmp("bootstrap", uci_to_option(e)->v.string))
-				config->local->event = BOOTSTRAP;
-
-			if (!strcasecmp("boot", uci_to_option(e)->v.string))
-				config->local->event = BOOT;
+			config->local->event =
+				freecwmp_int_event_code(uci_to_option(e)->v.string);
 
 			DD("freecwmp.@local[0].event=%s\n", uci_to_option(e)->v.string);
 		}
