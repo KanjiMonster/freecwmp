@@ -28,10 +28,12 @@
 #include "ubus/ubus.h"
 
 static void freecwmp_kickoff(struct uloop_timeout *);
-
+static void freecwmp_do_reload(struct uloop_timeout *timeout);
 static void netlink_new_msg(struct uloop_fd *ufd, unsigned events);
+
 static struct uloop_fd netlink_event = { .cb = netlink_new_msg };
-static struct uloop_timeout freecwmp_kickoff_t = { .cb = freecwmp_kickoff};
+static struct uloop_timeout kickoff_timer = { .cb = freecwmp_kickoff };
+static struct uloop_timeout reload_timer = { .cb = freecwmp_do_reload };
 
 static void
 print_help(void)
@@ -49,6 +51,17 @@ freecwmp_kickoff(struct uloop_timeout *timeout)
 	if (ubus_init()) D("ubus initialization failed\n");
 	cwmp_inform();
 }
+
+static void freecwmp_do_reload(struct uloop_timeout *timeout)
+{
+	config_load();
+}
+
+void freecwmp_reload(void)
+{
+	uloop_timeout_set(&reload_timer, 100);
+}
+
 
 static void
 freecwmp_netlink_interface(struct nlmsghdr *nlh)
@@ -92,7 +105,7 @@ freecwmp_netlink_interface(struct nlmsghdr *nlh)
 
 	freecwmp_log_message(NAME, L_NOTICE, "interface %s has ip %s\n", \
 			     if_name, if_addr);
-	uloop_timeout_set(&freecwmp_kickoff_t, 3 * 1000);
+	uloop_timeout_set(&kickoff_timer, 2500);
 }
 
 static void

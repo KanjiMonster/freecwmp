@@ -510,7 +510,6 @@ set_parameter:
 		goto error_set_parameter;
 
 	if (node) {
-		status = cwmp_reload_changes();
 		goto done_set_parameter;
 	}
 

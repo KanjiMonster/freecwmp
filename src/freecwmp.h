@@ -42,5 +42,7 @@ static inline void no_debug(int level, const char *fmt, ...)
 {
 }
 
+void freecwmp_reload(void);
+
 #endif
 

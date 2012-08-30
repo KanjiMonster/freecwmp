@@ -16,8 +16,6 @@
 #include "../cwmp/cwmp.h"
 
 static struct ubus_context *ctx = NULL;
-static struct ubus_watch_object test_event;
-static struct blob_buf b;
 
 static enum notify {
 	NOTIFY_PARAM,
@@ -87,9 +85,21 @@ freecwmpd_handle_inform(struct ubus_context *ctx, struct ubus_object *obj,
 	return 0;
 }
 
+static int
+freecwmpd_handle_reload(struct ubus_context *ctx, struct ubus_object *obj,
+			struct ubus_request_data *req, const char *method,
+			struct blob_attr *msg)
+{
+	freecwmp_log_message(NAME, L_NOTICE, "triggered ubus reload\n");
+	freecwmp_reload();
+
+	return 0;
+}
+
 static const struct ubus_method freecwmp_methods[] = {
 	UBUS_METHOD("notify", freecwmpd_handle_notify, notify_policy),
 	UBUS_METHOD("inform", freecwmpd_handle_inform, inform_policy),
+	{ .name = "reload", .handler = freecwmpd_handle_reload },
 };
 
 static struct ubus_object_type main_object_type =

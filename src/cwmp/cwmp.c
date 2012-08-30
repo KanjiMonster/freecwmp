@@ -27,7 +27,6 @@ static struct cwmp {
 	int64_t periodic_inform_interval;
 	struct uloop_timeout acs_error_t;
 	int8_t retry_count;
-	bool config_reload;
 	struct list_head notifications;
 } cwmp;
 
@@ -51,7 +50,6 @@ cwmp_init(void)
 	char *c = NULL;
 
 	cwmp.retry_count = 0;
-	cwmp.config_reload = false;
 	cwmp.periodic_inform_enabled = 0;
 	cwmp.periodic_inform_interval = 0;
 	cwmp.event_code = config->local->event;
@@ -261,19 +259,6 @@ cwmp_set_parameter_write_handler(char *name, char *value)
 	printf("--- CWMP HANDLE SET PARAMETER ---\n");
 #endif
 
-	if((strcmp(name, "InternetGatewayDevice.ManagementServer.Username")) == 0) {
-		cwmp.config_reload = true;
-	}
-
-	if((strcmp(name, "InternetGatewayDevice.ManagementServer.Password")) == 0) {
-		cwmp.config_reload = true;
-	}
-
-	if((strcmp(name, "InternetGatewayDevice.ManagementServer.URL")) == 0) {
-		cwmp.event_code = VALUE_CHANGE;
-		cwmp.config_reload = true;
-	}
-
 	if((strcmp(name, "InternetGatewayDevice.ManagementServer.PeriodicInformEnable")) == 0) {
 		cwmp.periodic_inform_enabled = atoi(value);
 	}
@@ -319,6 +304,8 @@ cwmp_set_action_execute_handler()
 	int8_t status;
 
 	status = external_set_action_execute();
+
+	config_load();
 
 	FC_DEVEL_DEBUG("exit");
 	return status;
@@ -412,27 +399,6 @@ cwmp_factory_reset_handler(void)
 	printf("+++ CWMP HANDLE FACTORY RESET +++\n");
 #endif
 
-	FC_DEVEL_DEBUG("exit");
-	return status;
-}
-
-int8_t
-cwmp_reload_changes(void)
-{
-	FC_DEVEL_DEBUG("enter");
-
-	int8_t status;
-
-	if (cwmp.config_reload) {
-		status = config_load();
-		if (status != FC_SUCCESS)
-			goto done;
-		cwmp.config_reload = 0;
-	}
-
-	status = FC_SUCCESS;
-
-done:
 	FC_DEVEL_DEBUG("exit");
 	return status;
 }
