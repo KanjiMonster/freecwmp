@@ -1,19 +1,34 @@
-# configure autotools
-autoreconf --install -f
+configure autotools
+===================
 
-# clean it all up
-make distclean
-rm -rf aclocal.m4 autom4te.cache bin/Makefile.in compile configure depcomp install-sh Makefile.in missing
+$ autoreconf -if
 
-# development environment
-# shflags must be at /usr/share/shflags/shflags.sh
-echo mkdir -p /usr/share/freecwmp/functions/
-echo ln -sf `pwd`/ext/openwrt/scripts/defaults /usr/share/freecwmp/defaults
-echo ln -sf `pwd`/ext/openwrt/scripts/functions/common /usr/share/freecwmp/functions/common
-echo ln -sf `pwd`/ext/openwrt/scripts/functions/device_info /usr/share/freecwmp/functions/device_info
-echo ln -sf `pwd`/ext/openwrt/scripts/functions/lan_device /usr/share/freecwmp/functions/lan_device
-echo ln -sf `pwd`/ext/openwrt/scripts/functions/management_server /usr/share/freecwmp/functions/management_server
-echo ln -sf `pwd`/ext/openwrt/scripts/functions/voice_service /usr/share/freecwmp/functions/voice_service
-echo ln -sf `pwd`/ext/openwrt/scripts/functions/wan_device /usr/share/freecwmp/functions/wan_device
-echo ln -sf `pwd`/ext/openwrt/scripts/functions/x_freecwmp_org /usr/share/freecwmp/functions/x_freecwmp_org
-echo uci_options=\"-c `pwd`/ext/openwrt/config\"
+clean it all up
+===============
+
+$ make distclean
+
+or 
+
+$ git clean -df
+
+development environment
+=======================
+
+Make sure you have all the packages installed from packages-arch-tr069 git
+repository.
+
+$ ln -sf `pwd`/ext/openwrt/scripts/defaults /usr/share/freecwmp/defaults
+$ ln -sf `pwd`/ext/openwrt/scripts/functions/common /usr/share/freecwmp/functions/common
+$ ln -sf `pwd`/ext/openwrt/scripts/functions/device_info /usr/share/freecwmp/functions/device_info
+$ ln -sf `pwd`/ext/openwrt/scripts/functions/lan_device /usr/share/freecwmp/functions/lan_device
+$ ln -sf `pwd`/ext/openwrt/scripts/functions/management_server /usr/share/freecwmp/functions/management_server
+$ ln -sf `pwd`/ext/openwrt/scripts/functions/voice_service /usr/share/freecwmp/functions/voice_service
+$ ln -sf `pwd`/ext/openwrt/scripts/functions/wan_device /usr/share/freecwmp/functions/wan_device
+$ ln -sf `pwd`/ext/openwrt/scripts/functions/x_freecwmp_org /usr/share/freecwmp/functions/x_freecwmp_org
+
+run freecwmpd
+=============
+
+$ export UCI_CONFIG_DIR="`pwd`/ext/openwrt/config/" 
+$ ./bin/freecwmpd -f
