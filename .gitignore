@@ -27,6 +27,7 @@
 /config.log
 /config.status
 /depcomp
+/INSTALL
 /install-sh
 /missing
 /Makefile
