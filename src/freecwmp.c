@@ -32,7 +32,7 @@ static void freecwmp_do_reload(struct uloop_timeout *timeout);
 static void netlink_new_msg(struct uloop_fd *ufd, unsigned events);
 
 static struct uloop_fd netlink_event = { .cb = netlink_new_msg };
-static struct uloop_timeout kickoff_timer = { .cb = freecwmp_kickoff };
+static struct uloop_timeout netlink_timer = { .cb = freecwmp_kickoff };
 static struct uloop_timeout reload_timer = { .cb = freecwmp_do_reload };
 
 static void
@@ -105,7 +105,7 @@ freecwmp_netlink_interface(struct nlmsghdr *nlh)
 
 	freecwmp_log_message(NAME, L_NOTICE, "interface %s has ip %s\n", \
 			     if_name, if_addr);
-	uloop_timeout_set(&kickoff_timer, 2500);
+	uloop_timeout_set(&netlink_timer, 2500);
 }
 
 static void
@@ -235,11 +235,7 @@ int main (int argc, char **argv)
 	}
 
 	uloop_init();
-
-	if (config_load()) {
-		D("configuration initialization failed\n");
-		exit(EXIT_FAILURE);
-	}
+	config_load();
 
 	if (netlink_init()) {
 		D("netlink initialization failed\n");

@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <libfreecwmp.h>
+
 #include "config.h"
 #include "cwmp/cwmp.h"
 
@@ -20,8 +22,7 @@ static struct uci_package *uci_freecwmp;
 struct core_config *config;
 
 
-static void
-config_free_local(void) {
+static void config_free_local(void) {
 	FREE(config->local->ip);
 	FREE(config->local->interface);
 	FREE(config->local->port);
@@ -29,8 +30,7 @@ config_free_local(void) {
 	FREE(config->local);
 }
 
-static int
-config_init_local(void)
+static int config_init_local(void)
 {
 	struct uci_section *s;
 	struct uci_element *e;
@@ -98,8 +98,7 @@ next:
 	return 0;
 }
 
-static void
-config_free_acs(void) {
+static void config_free_acs(void) {
 	FREE(config->acs->scheme);
 	FREE(config->acs->username);
 	FREE(config->acs->password);
@@ -113,8 +112,7 @@ config_free_acs(void) {
 	FREE(config->acs);
 }
 
-static int
-config_init_acs(void)
+static int config_init_acs(void)
 {
 	struct uci_section *s;
 	struct uci_element *e;
@@ -246,8 +244,7 @@ next:
 	return 0;
 }
 
-static void
-config_free_device(void)
+static void config_free_device(void)
 {
 	FREE(config->device->manufacturer);
 	FREE(config->device->oui);
@@ -259,8 +256,7 @@ config_free_device(void)
 	FREE(config->device);
 }
 
-static int
-config_init_device(void)
+static int config_init_device(void)
 {
 	struct uci_section *s;
 	struct uci_element *e;
@@ -377,8 +373,7 @@ error:
 	return NULL;
 }
 
-int
-config_load(void)
+void config_load(void)
 {
 	if (!first_run && !uci_ctx) {
 		uci_free_context(uci_ctx);
@@ -386,14 +381,18 @@ config_load(void)
 	}
 
 	uci_freecwmp = config_init_package("freecwmp");
-	if (!uci_freecwmp) return -1;
+	if (!uci_freecwmp) goto error;
 
-	if (config_init_local()) return -1;
-	if (config_init_acs()) return -1;
-	if (config_init_device()) return -1;
+	if (config_init_local()) goto error;
+	if (config_init_acs()) goto error;
+	if (config_init_device()) goto error;
 
-	first_run == false;
+	first_run = false;
+	return;
 
-	return 0;
+error:
+	freecwmp_log_message(NAME, L_CRIT, "configuration (re)loading failed\n");
+	D("configuration (re)loading failed\n"); 
+	exit(EXIT_FAILURE);
 }
 
