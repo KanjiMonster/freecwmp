@@ -21,18 +21,16 @@
 
 static struct cwmp {
 	int event_code;
-	struct uloop_timeout connection_request_t;
 	struct uloop_timeout periodic_inform_t;
 	int8_t periodic_inform_enabled;
 	int64_t periodic_inform_interval;
-	struct uloop_timeout acs_error_t;
 	int8_t retry_count;
 	struct list_head notifications;
 } cwmp;
 
+static struct uloop_timeout inform_timer = { .cb = cwmp_inform };
 
-static void
-cwmp_periodic_inform(struct uloop_timeout *timeout)
+static void cwmp_periodic_inform(struct uloop_timeout *timeout)
 {
 	if (cwmp.periodic_inform_enabled && cwmp.periodic_inform_interval) {
 		cwmp.periodic_inform_t.cb = cwmp_periodic_inform;
@@ -44,8 +42,7 @@ cwmp_periodic_inform(struct uloop_timeout *timeout)
 		cwmp_inform();
 }
 
-void
-cwmp_init(void)
+void cwmp_init(void)
 {
 	char *c = NULL;
 
@@ -73,15 +70,13 @@ cwmp_init(void)
 	INIT_LIST_HEAD(&cwmp.notifications);
 }
 
-void
-cwmp_exit(void)
+void cwmp_exit(void)
 {
 	http_client_exit();
 	xml_exit();
 }
 
-int
-cwmp_inform(void)
+int cwmp_inform(void)
 {
 	char *msg_in, *msg_out;
 	msg_in = msg_out = NULL;
@@ -129,20 +124,18 @@ error:
 	http_client_exit();
 	xml_exit();
 
-	cwmp.acs_error_t.cb = cwmp_inform;
+	cwmp.retry_count++;
 	if (cwmp.retry_count < 100) {
-		cwmp.retry_count++;
-		uloop_timeout_set(&cwmp.acs_error_t, 10000 * cwmp.retry_count);
+		uloop_timeout_set(&inform_timer, 10000 * cwmp.retry_count);
 	} else {
 		/* try every 20 minutes */
-		uloop_timeout_set(&cwmp.acs_error_t, 1200000);
+		uloop_timeout_set(&inform_timer, 1200000);
 	}
 
 	return -1;
 }
 
-int
-cwmp_handle_messages(void)
+int cwmp_handle_messages(void)
 {
 	int8_t status;
 	char *msg_in, *msg_out;
@@ -184,16 +177,13 @@ error:
 	return -1;
 }
 
-void
-cwmp_connection_request(int code)
+void cwmp_connection_request(int code)
 {
 	cwmp.event_code = code;
-	cwmp.connection_request_t.cb = cwmp_inform;
-	uloop_timeout_set(&cwmp.connection_request_t, 500);
+	uloop_timeout_set(&inform_timer, 500);
 }
 
-void
-cwmp_add_notification(char *parameter, char *value)
+void cwmp_add_notification(char *parameter, char *value)
 {
 	char *c = NULL;
 	cwmp_get_notification_handler(parameter, &c);
@@ -233,8 +223,7 @@ cwmp_get_notifications()
 	return &cwmp.notifications;
 }
 
-void
-cwmp_clear_notifications(void)
+void cwmp_clear_notifications(void)
 {
 	struct notification *n, *p;
 	list_for_each_entry_safe(n, p, &cwmp.notifications, list) {
@@ -245,8 +234,7 @@ cwmp_clear_notifications(void)
 	}
 }
 
-int8_t
-cwmp_set_parameter_write_handler(char *name, char *value)
+int8_t cwmp_set_parameter_write_handler(char *name, char *value)
 {
 	FC_DEVEL_DEBUG("enter");
 
@@ -276,8 +264,7 @@ done:
 	return status;
 }
 
-int8_t
-cwmp_set_notification_write_handler(char *name, char *value)
+int8_t cwmp_set_notification_write_handler(char *name, char *value)
 {
 	FC_DEVEL_DEBUG("enter");
 
@@ -297,8 +284,7 @@ done:
 	return status;
 }
 
-int8_t
-cwmp_set_action_execute_handler()
+int8_t cwmp_set_action_execute_handler()
 {
 	FC_DEVEL_DEBUG("enter");
 	int8_t status;
@@ -311,8 +297,7 @@ cwmp_set_action_execute_handler()
 	return status;
 }
 
-int8_t
-cwmp_get_parameter_handler(char *name, char **value)
+int8_t cwmp_get_parameter_handler(char *name, char **value)
 {
 	FC_DEVEL_DEBUG("enter");
 
@@ -331,8 +316,7 @@ cwmp_get_parameter_handler(char *name, char **value)
 	return status;
 }
 
-int8_t
-cwmp_get_notification_handler(char *name, char **value)
+int8_t cwmp_get_notification_handler(char *name, char **value)
 {
 	FC_DEVEL_DEBUG("enter");
 
@@ -351,8 +335,7 @@ cwmp_get_notification_handler(char *name, char **value)
 	return status;
 }
 
-int8_t
-cwmp_download_handler(char *url, char *size)
+int8_t cwmp_download_handler(char *url, char *size)
 {
 	FC_DEVEL_DEBUG("enter");
 
@@ -369,8 +352,7 @@ cwmp_download_handler(char *url, char *size)
 }
 
 
-int8_t
-cwmp_reboot_handler(void)
+int8_t cwmp_reboot_handler(void)
 {
 	FC_DEVEL_DEBUG("enter");
 
@@ -386,8 +368,7 @@ cwmp_reboot_handler(void)
 	return status;
 }
 
-int8_t
-cwmp_factory_reset_handler(void)
+int8_t cwmp_factory_reset_handler(void)
 {
 	FC_DEVEL_DEBUG("enter");
 
