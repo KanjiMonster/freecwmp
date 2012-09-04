@@ -16,50 +16,22 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+
 #include <libubox/uloop.h>
 
 #include "../freecwmp.h"
-
 #include "external.h"
 
-static struct uloop_timeout timeout;
 static struct uloop_process uproc;
 
-static void
-cancel_child_timeout(struct uloop_process *uproc, int ret)
+int external_get_action(char *action, char *name, char **value)
 {
-	FC_DEVEL_DEBUG("enter");
-
-	FC_DEVEL_DEBUG("uloop_timeout_cancel(&timeout);");
-
-	FC_DEVEL_DEBUG("exit");
-}
-
-static void
-kill_child_timeout()
-{
-	FC_DEVEL_DEBUG("enter");
-
-	// TODO: think about ; some scripts make take longer to finish
-	FC_DEVEL_DEBUG("killpg(uproc.pid, SIGTERM);");
-
-	FC_DEVEL_DEBUG("exit");
-}
-
-int8_t
-external_get_action(char *action, char *name, char **value)
-{
-	FC_DEVEL_DEBUG("enter");
-
-	int status;
-
 	int pfds[2];
 	if (pipe(pfds) < 0)
 		return -1;
 
-	if ((uproc.pid = fork()) == -1) {
-		goto error;
-	}
+	if ((uproc.pid = fork()) == -1)
+		return -1;
 
 	if (uproc.pid == 0) {
 		/* child */
@@ -82,15 +54,15 @@ external_get_action(char *action, char *name, char **value)
 		execvp(argv[0], (char **) argv);
 		exit(ESRCH);
 
-	} else if (uproc.pid < 0) {
-		goto error;
-	}
+	} else if (uproc.pid < 0)
+		return -1;
 
 	/* parent */
 	close(pfds[1]);
 
+	int status;
 	while (wait(&status) != uproc.pid) {
-		FC_DEVEL_DEBUG("waiting for child to exit");
+		DD("waiting for child to exit");
 	}
 
 	char buffer[2];
@@ -99,52 +71,38 @@ external_get_action(char *action, char *name, char **value)
 	*value = (char *) calloc(1, sizeof(char));
 	while ((rxed = read(pfds[0], buffer, sizeof(buffer))) > 0) {
 		*value = (char *) realloc(*value, (strlen(*value) + rxed + 1) * sizeof(char));
-		if (!(*value))
-			goto error;
+		if (!(*value)) return -1;
 		bzero(*value + strlen(*value), rxed + 1);
 		memcpy(*value + strlen(*value), buffer, rxed);
 	}
 
 	if (!strlen(*value)) {
-		free(*value);
-		*value = NULL;
-		goto almost_done;
+		FREE(*value);
+		return 0;
 	}
 
 	if (rxed < 0)
-		goto error;
+		return -1;
 	
-almost_done:
-	status = FC_SUCCESS;
-	goto done;
-
-error:
-	status = FC_ERROR;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return (int8_t) status;
+	return 0;
 }
 
-int8_t
-external_set_action_write(char *action, char *name, char *value)
+int external_set_action_write(char *action, char *name, char *value)
 {
-	FC_DEVEL_DEBUG("enter");
-	int status;
 	FILE *fp;
 
 	if (access(fc_script_set_actions, R_OK | W_OK | X_OK) != -1) {
 		fp = fopen(fc_script_set_actions, "a");
-		if (!fp) return FC_ERROR;
+		if (!fp) return -1;
 	} else {
 		fp = fopen(fc_script_set_actions, "w");
-		if (!fp) return FC_ERROR;
+		if (!fp) return -1;
 
 		fprintf(fp, "#!/bin/sh\n");
 
 		if (chmod(fc_script_set_actions,
-			  strtol("0700", 0, 8)) < 0) {
-			goto error;
+			strtol("0700", 0, 8)) < 0) {
+			return -1;
 		}
 	}
 
@@ -156,25 +114,13 @@ external_set_action_write(char *action, char *name, char *value)
 
 	fclose(fp);
 
-	status = FC_SUCCESS;
-	goto done;
-
-error:
-	status = FC_ERROR;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return (int8_t) status;
+	return 0;
 }
 
-int8_t
-external_set_action_execute()
+int external_set_action_execute()
 {
-	FC_DEVEL_DEBUG("enter");
-	int status;
-
 	if ((uproc.pid = fork()) == -1) {
-		goto error;
+		return -1;
 	}
 
 	if (uproc.pid == 0) {
@@ -189,41 +135,28 @@ external_set_action_execute()
 		execvp(argv[0], (char **) argv);
 		exit(ESRCH);
 
-	} else if (uproc.pid < 0) {
-		goto error;
-	}
+	} else if (uproc.pid < 0)
+		return -1;
 
 	/* parent */
 
+	int status;
 	while (wait(&status) != uproc.pid) {
-		FC_DEVEL_DEBUG("waiting for child to exit");
+		DD("waiting for child to exit");
 	}
 
 	// TODO: add some kind of checks
 
 	if (remove(fc_script_set_actions) != 0)
-		goto error;
+		return -1;
 
-	status = FC_SUCCESS;
-	goto done;
-
-error:
-	status = FC_ERROR;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return (int8_t) status;
+	return 0;
 }
 
-int8_t
-external_simple(char *arg)
+int external_simple(char *arg)
 {
-	FC_DEVEL_DEBUG("enter");
-	int status;
-
-	if ((uproc.pid = fork()) == -1) {
-		goto error;
-	}
+	if ((uproc.pid = fork()) == -1)
+		return -1;
 
 	if (uproc.pid == 0) {
 		/* child */
@@ -238,39 +171,25 @@ external_simple(char *arg)
 		execvp(argv[0], (char **) argv);
 		exit(ESRCH);
 
-	} else if (uproc.pid < 0) {
-		goto error;
-	}
+	} else if (uproc.pid < 0)
+		return -1;
 
 	/* parent */
 
+	int status;
 	while (wait(&status) != uproc.pid) {
-		FC_DEVEL_DEBUG("waiting for child to exit");
+		DD("waiting for child to exit");
 	}
 
 	// TODO: add some kind of checks
 
-	status = FC_SUCCESS;
-	goto done;
-
-error:
-	status = FC_ERROR;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return 0;
 }
 
-int8_t
-external_download(char *url, char *size)
+int external_download(char *url, char *size)
 {
-	FC_DEVEL_DEBUG("enter");
-
-	int status;
-
-	if ((uproc.pid = fork()) == -1) {
-		goto error;
-	}
+	if ((uproc.pid = fork()) == -1)
+		return -1;
 
 	if (uproc.pid == 0) {
 		/* child */
@@ -289,28 +208,20 @@ external_download(char *url, char *size)
 		execvp(argv[0], (char **) argv);
 		exit(ESRCH);
 
-	} else if (uproc.pid < 0) {
-		goto error;
-	}
+	} else if (uproc.pid < 0)
+		return -1;
 
 	/* parent */
-	int child_status;
-
-	while (wait(&child_status) != uproc.pid) {
-		FC_DEVEL_DEBUG("waiting for child to exit");
+	int status;
+	while (wait(&status) != uproc.pid) {
+		DD("waiting for child to exit");
 	}
 
-	if (WIFEXITED(child_status) && !WEXITSTATUS(child_status))
-		status = FC_SUCCESS;
+	if (WIFEXITED(status) && !WEXITSTATUS(status))
+		return 0;
 	else
-		status = FC_ERROR;
-	goto done;
+		return 1;
 
-error:
-	status = FC_ERROR;
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return 0;
 }
 

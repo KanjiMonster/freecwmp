@@ -17,11 +17,11 @@ static char *fc_script = "/usr/sbin/freecwmp";
 #endif
 static char *fc_script_set_actions = "/tmp/freecwmp_set_action_values.sh";
 
-int8_t external_get_action(char *action, char *name, char **value);
-int8_t external_set_action_write(char *action, char *name, char *value);
-int8_t external_set_action_execute();
-int8_t external_simple(char *arg);
-int8_t external_download(char *url, char *size);
+int external_get_action(char *action, char *name, char **value);
+int external_set_action_write(char *action, char *name, char *value);
+int external_set_action_execute();
+int external_simple(char *arg);
+int external_download(char *url, char *size);
 
 #endif
 
