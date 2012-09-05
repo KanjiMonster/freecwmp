@@ -21,7 +21,6 @@
 
 static struct cwmp {
 	int event_code;
-	struct uloop_timeout periodic_inform_t;
 	int8_t periodic_inform_enabled;
 	int64_t periodic_inform_interval;
 	int8_t retry_count;
@@ -29,12 +28,12 @@ static struct cwmp {
 } cwmp;
 
 static struct uloop_timeout inform_timer = { .cb = cwmp_inform };
+static struct uloop_timeout periodic_inform_timer = { .cb = cwmp_periodic_inform };
 
 static void cwmp_periodic_inform(struct uloop_timeout *timeout)
 {
 	if (cwmp.periodic_inform_enabled && cwmp.periodic_inform_interval) {
-		cwmp.periodic_inform_t.cb = cwmp_periodic_inform;
-		uloop_timeout_set(&cwmp.periodic_inform_t, cwmp.periodic_inform_interval * 1000);
+		uloop_timeout_set(&periodic_inform_timer, cwmp.periodic_inform_interval * 1000);
 		cwmp.event_code = PERIODIC;
 	}
 
@@ -54,8 +53,7 @@ void cwmp_init(void)
 	cwmp_get_parameter_handler("InternetGatewayDevice.ManagementServer.PeriodicInformInterval", &c);
 	if (c) {
 		cwmp.periodic_inform_interval = atoi(c);
-		cwmp.periodic_inform_t.cb = cwmp_periodic_inform;
-		uloop_timeout_set(&cwmp.periodic_inform_t, cwmp.periodic_inform_interval * 1000);
+		uloop_timeout_set(&periodic_inform_timer, cwmp.periodic_inform_interval * 1000);
 	}
 	FREE(c);
 
@@ -234,18 +232,10 @@ void cwmp_clear_notifications(void)
 	}
 }
 
-int8_t cwmp_set_parameter_write_handler(char *name, char *value)
+int cwmp_set_parameter_write_handler(char *name, char *value)
 {
-	FC_DEVEL_DEBUG("enter");
-
-	int8_t status;
-
-#ifdef DEVEL_DEBUG
-	printf("+++ CWMP HANDLE SET PARAMETER +++\n");
-	printf("Name  : '%s'\n", name);
-	printf("Value : '%s'\n", value);
-	printf("--- CWMP HANDLE SET PARAMETER ---\n");
-#endif
+	freecwmp_log_message(NAME, L_NOTICE,
+		"received set parameter '%s':'%s'\n", name, value);
 
 	if((strcmp(name, "InternetGatewayDevice.ManagementServer.PeriodicInformEnable")) == 0) {
 		cwmp.periodic_inform_enabled = atoi(value);
@@ -253,173 +243,76 @@ int8_t cwmp_set_parameter_write_handler(char *name, char *value)
 
 	if((strcmp(name, "InternetGatewayDevice.ManagementServer.PeriodicInformInterval")) == 0) {
 		cwmp.periodic_inform_interval = atoi(value);
-		cwmp.periodic_inform_t.cb = cwmp_periodic_inform;
-		uloop_timeout_set(&cwmp.periodic_inform_t, cwmp.periodic_inform_interval * 1000);
+		uloop_timeout_set(&periodic_inform_timer, cwmp.periodic_inform_interval * 1000);
 	}
 
-	status = external_set_action_write("value", name, value);
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return external_set_action_write("value", name, value);
 }
 
-int8_t cwmp_set_notification_write_handler(char *name, char *value)
+int cwmp_set_notification_write_handler(char *name, char *value)
 {
-	FC_DEVEL_DEBUG("enter");
 
-	int8_t status;
+	freecwmp_log_message(NAME, L_NOTICE,
+		"received set notification '%s':'%s'\n", name, value);
 
-#ifdef DEVEL_DEBUG
-	printf("+++ CWMP HANDLE SET NOTIFICATION +++\n");
-	printf("Name  : '%s'\n", name);
-	printf("Value : '%s'\n", value);
-	printf("--- CWMP HANDLE SET NOTIFICATION ---\n");
-#endif
-
-	status = external_set_action_write("notification", name, value);
-
-done:
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return external_set_action_write("notification", name, value);
 }
 
-int8_t cwmp_set_action_execute_handler()
+int cwmp_set_action_execute_handler()
 {
-	FC_DEVEL_DEBUG("enter");
-	int8_t status;
-
-	status = external_set_action_execute();
+	if (external_set_action_execute())
+		return -1;
 
 	config_load();
-
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return 0;
 }
 
-int8_t cwmp_get_parameter_handler(char *name, char **value)
+int cwmp_get_parameter_handler(char *name, char **value)
 {
-	FC_DEVEL_DEBUG("enter");
+	freecwmp_log_message(NAME, L_NOTICE,
+		"received get parameter '%s'\n", name);
 
-	int8_t status;
-
-	status = external_get_action("value", name, value);
-
-#ifdef DEVEL_DEBUG
-	printf("+++ CWMP HANDLE GET PARAMETER +++\n");
-	printf("Name  : '%s'\n", name);
-	printf("Value : '%s'\n", *value);
-	printf("--- CWMP HANDLE GET PARAMETER ---\n");
-#endif
-
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return external_get_action("value", name, value);
 }
 
-int8_t cwmp_get_notification_handler(char *name, char **value)
+int cwmp_get_notification_handler(char *name, char **value)
 {
-	FC_DEVEL_DEBUG("enter");
+	freecwmp_log_message(NAME, L_NOTICE,
+		"received get notification '%s'\n", name);
 
-	int8_t status;
-
-	status = external_get_action("notification", name, value);
-
-#ifdef DEVEL_DEBUG
-	printf("+++ CWMP HANDLE GET NOTIFICATION +++\n");
-	printf("Name  : '%s'\n", name);
-	printf("Value : '%s'\n", *value);
-	printf("+++ CWMP HANDLE GET NOTIFICATION +++\n");
-#endif
-
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return external_get_action("notification", name, value);
 }
 
-int8_t cwmp_download_handler(char *url, char *size)
+int cwmp_download_handler(char *url, char *size)
 {
-	FC_DEVEL_DEBUG("enter");
+	freecwmp_log_message(NAME, L_NOTICE,
+		"received download url '%s'\n", url);
 
-	int8_t status;
-
-	status = external_download(url, size);
-
-#ifdef DEVEL_DEBUG
-	printf("+++ CWMP HANDLE DOWNLOAD +++\n");
-#endif
-
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return external_download(url, size);
 }
 
 
-int8_t cwmp_reboot_handler(void)
+int cwmp_reboot_handler(void)
 {
-	FC_DEVEL_DEBUG("enter");
+	freecwmp_log_message(NAME, L_NOTICE, "received reboot request\n");
 
-	int8_t status;
-
-	status = external_simple("reboot");
-
-#ifdef DEVEL_DEBUG
-	printf("+++ CWMP HANDLE REBOOT +++\n");
-#endif
-
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return external_simple("reboot");
 }
 
-int8_t cwmp_factory_reset_handler(void)
+int cwmp_factory_reset_handler(void)
 {
-	FC_DEVEL_DEBUG("enter");
+	freecwmp_log_message(NAME, L_NOTICE, "received factory reset request\n");
 
-	int8_t status;
-
-	status = external_simple("factory_reset");
-
-#ifdef DEVEL_DEBUG
-	printf("+++ CWMP HANDLE FACTORY RESET +++\n");
-#endif
-
-	FC_DEVEL_DEBUG("exit");
-	return status;
+	return external_simple("factory_reset");
 }
 
-char *
-cwmp_get_event_code(void)
+char * cwmp_get_event_code(void)
 {
-	FC_DEVEL_DEBUG("enter");
-
-	char *cwmp_inform_event_code;
-	switch (cwmp.event_code) {
-		case BOOT:
-			cwmp_inform_event_code = "1 BOOT";
-			break;
-		case PERIODIC:
-			cwmp_inform_event_code = "2 PERIODIC";
-			break;
-		case SCHEDULED:
-			cwmp_inform_event_code = "3 SCHEDULED";
-			break;
-		case VALUE_CHANGE:
-			cwmp_inform_event_code = "4 VALUE CHANGE";
-			break;
-		case CONNECTION_REQUEST:
-			cwmp_inform_event_code = "6 CONNECTION REQUEST";
-			break;
-		case BOOTSTRAP:
-		default:
-			cwmp_inform_event_code = "0 BOOTSTRAP";
-			break;
-	}
-
-	FC_DEVEL_DEBUG("exit");
-	return cwmp_inform_event_code;
+	return freecwmp_str_event_code(cwmp.event_code);
 }
 
-int
-cwmp_get_retry_count(void)
+int cwmp_get_retry_count(void)
 {
-	FC_DEVEL_DEBUG("enter & exit");
 	return cwmp.retry_count;
 }
 

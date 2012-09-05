@@ -19,6 +19,8 @@ struct notification {
 	char *value;
 };
 
+static void cwmp_periodic_inform(struct uloop_timeout *timeout);
+
 void cwmp_init(void);
 void cwmp_exit(void);
 int cwmp_inform(void);
@@ -27,13 +29,13 @@ void cwmp_connection_request(int code);
 void cwmp_reload(void);
 void cwmp_add_notification(char *parameter, char *value);
 struct list_head * cwmp_get_notifications();
-int8_t cwmp_set_notification_write_handler(char *name, char *value);
-int8_t cwmp_set_parameter_write_handler(char *name, char *value);
-int8_t cwmp_set_action_execute_handler();
-int8_t cwmp_get_parameter_handler(char *name, char **value);
-int8_t cwmp_get_notification_handler(char *name, char **value);
+int cwmp_set_notification_write_handler(char *name, char *value);
+int cwmp_set_parameter_write_handler(char *name, char *value);
+int cwmp_set_action_execute_handler();
+int cwmp_get_parameter_handler(char *name, char **value);
+int cwmp_get_notification_handler(char *name, char **value);
 void cwmp_clear_notifications(void);
-int8_t cwmp_download_handler(char *url, char *size);
+int cwmp_download_handler(char *url, char *size);
 int8_t cwmp_reboot_handler(void);
 int8_t cwmp_factory_reset_handler(void);
 char * cwmp_get_event_code(void);
