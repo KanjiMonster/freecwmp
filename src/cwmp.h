@@ -20,6 +20,7 @@ struct notification {
 };
 
 static void cwmp_periodic_inform(struct uloop_timeout *timeout);
+static void cwmp_do_inform(struct uloop_timeout *timeout);
 
 void cwmp_init(void);
 void cwmp_exit(void);
@@ -30,8 +31,6 @@ void cwmp_reload(void);
 void cwmp_add_notification(char *parameter, char *value);
 struct list_head * cwmp_get_notifications();
 int cwmp_set_parameter_write_handler(char *name, char *value);
-int cwmp_set_action_execute_handler();
-int cwmp_get_notification_handler(char *name, char **value);
 void cwmp_clear_notifications(void);
 char * cwmp_get_event_code(void);
 int cwmp_get_retry_count(void);

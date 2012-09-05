@@ -29,7 +29,7 @@ static struct cwmp {
 	struct list_head notifications;
 } cwmp;
 
-static struct uloop_timeout inform_timer = { .cb = cwmp_inform };
+static struct uloop_timeout inform_timer = { .cb = cwmp_do_inform };
 static struct uloop_timeout periodic_inform_timer = { .cb = cwmp_periodic_inform };
 
 static void cwmp_periodic_inform(struct uloop_timeout *timeout)
@@ -41,6 +41,11 @@ static void cwmp_periodic_inform(struct uloop_timeout *timeout)
 
 	if (cwmp.periodic_inform_enabled)
 		cwmp_inform();
+}
+
+static void cwmp_do_inform(struct uloop_timeout *timeout)
+{
+	cwmp_inform();
 }
 
 void cwmp_init(void)
