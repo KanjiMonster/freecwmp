@@ -148,7 +148,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = mxmlFindElement(tree, tree, "RetryCount", NULL, NULL, MXML_DESCEND);
 	if (!busy_node)
 		goto error;
-	busy_node = mxmlNewInteger(busy_node, cwmp_get_retry_count());
+	busy_node = mxmlNewInteger(busy_node, cwmp->retry_count);
 	if (!busy_node)
 		goto error;
 
@@ -183,7 +183,7 @@ xml_prepare_inform_message(char **msg_out)
 	busy_node = mxmlFindElement(tree, tree, "EventCode", NULL, NULL, MXML_DESCEND);
 	if (!busy_node)
 		goto error;
-	busy_node = mxmlNewText(busy_node, 0, cwmp_get_event_code());
+	busy_node = mxmlNewText(busy_node, 0, freecwmp_str_event_code(cwmp->event_code));
 	if (!busy_node)
 		goto error;
 

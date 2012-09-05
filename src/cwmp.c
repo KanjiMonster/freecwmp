@@ -21,25 +21,19 @@
 #include "http.h"
 #include "xml.h"
 
-static struct cwmp {
-	int event_code;
-	int8_t periodic_inform_enabled;
-	int64_t periodic_inform_interval;
-	int8_t retry_count;
-	struct list_head notifications;
-} cwmp;
+struct cwmp_internal *cwmp;
 
 static struct uloop_timeout inform_timer = { .cb = cwmp_do_inform };
 static struct uloop_timeout periodic_inform_timer = { .cb = cwmp_periodic_inform };
 
 static void cwmp_periodic_inform(struct uloop_timeout *timeout)
 {
-	if (cwmp.periodic_inform_enabled && cwmp.periodic_inform_interval) {
-		uloop_timeout_set(&periodic_inform_timer, cwmp.periodic_inform_interval * 1000);
-		cwmp.event_code = PERIODIC;
+	if (cwmp->periodic_inform_enabled && cwmp->periodic_inform_interval) {
+		uloop_timeout_set(&periodic_inform_timer, cwmp->periodic_inform_interval * 1000);
+		cwmp->event_code = PERIODIC;
 	}
 
-	if (cwmp.periodic_inform_enabled)
+	if (cwmp->periodic_inform_enabled)
 		cwmp_inform();
 }
 
@@ -52,31 +46,32 @@ void cwmp_init(void)
 {
 	char *c = NULL;
 
-	cwmp.retry_count = 0;
-	cwmp.periodic_inform_enabled = 0;
-	cwmp.periodic_inform_interval = 0;
-	cwmp.event_code = config->local->event;
+	cwmp = calloc(1, sizeof(struct cwmp_internal));
+	if (!cwmp) return;
+
+	cwmp->event_code = config->local->event;
 
 	external_get_action("value", "InternetGatewayDevice.ManagementServer.PeriodicInformInterval", &c);
 	if (c) {
-		cwmp.periodic_inform_interval = atoi(c);
-		uloop_timeout_set(&periodic_inform_timer, cwmp.periodic_inform_interval * 1000);
+		cwmp->periodic_inform_interval = atoi(c);
+		uloop_timeout_set(&periodic_inform_timer, cwmp->periodic_inform_interval * 1000);
 	}
 	FREE(c);
 
 	external_get_action("value", "InternetGatewayDevice.ManagementServer.PeriodicInformEnable", &c);
 	if (c) {
-		cwmp.periodic_inform_enabled = atoi(c);
+		cwmp->periodic_inform_enabled = atoi(c);
 	}
 	FREE(c);
 
 	http_server_init();
 
-	INIT_LIST_HEAD(&cwmp.notifications);
+	INIT_LIST_HEAD(&cwmp->notifications);
 }
 
 void cwmp_exit(void)
 {
+	FREE(cwmp);
 	http_client_exit();
 	xml_exit();
 }
@@ -109,7 +104,7 @@ int cwmp_inform(void)
 	FREE(msg_in);
 	FREE(msg_out);
 
-	cwmp.retry_count = 0;
+	cwmp->retry_count = 0;
 
 	if (cwmp_handle_messages()) {
 		D("handling xml message failed\n");
@@ -129,9 +124,9 @@ error:
 	http_client_exit();
 	xml_exit();
 
-	cwmp.retry_count++;
-	if (cwmp.retry_count < 100) {
-		uloop_timeout_set(&inform_timer, 10000 * cwmp.retry_count);
+	cwmp->retry_count++;
+	if (cwmp->retry_count < 100) {
+		uloop_timeout_set(&inform_timer, 10000 * cwmp->retry_count);
 	} else {
 		/* try every 20 minutes */
 		uloop_timeout_set(&inform_timer, 1200000);
@@ -184,7 +179,7 @@ error:
 
 void cwmp_connection_request(int code)
 {
-	cwmp.event_code = code;
+	cwmp->event_code = code;
 	uloop_timeout_set(&inform_timer, 500);
 }
 
@@ -197,7 +192,7 @@ void cwmp_add_notification(char *parameter, char *value)
 	bool uniq = true;
 	struct notification *n = NULL;
 	struct list_head *l, *p;
-	list_for_each(p, &cwmp.notifications) {
+	list_for_each(p, &cwmp->notifications) {
 		n = list_entry(p, struct notification, list);
 		if (!strcmp(n->parameter, parameter)) {
 			free(n->value);
@@ -211,12 +206,12 @@ void cwmp_add_notification(char *parameter, char *value)
 		n = calloc(1, sizeof(*n) + sizeof(char *) + strlen(parameter) + strlen(value));
 		if (!n) return;
 
-		list_add_tail(&n->list, &cwmp.notifications);
+		list_add_tail(&n->list, &cwmp->notifications);
 		n->parameter = strdup(parameter);
 		n->value = strdup(value);
 	}
 
-	cwmp.event_code = VALUE_CHANGE;
+	cwmp->event_code = VALUE_CHANGE;
 	if (!strncmp(c, "2", 1)) {
 		cwmp_inform();
 	}
@@ -225,13 +220,13 @@ void cwmp_add_notification(char *parameter, char *value)
 struct list_head *
 cwmp_get_notifications()
 {
-	return &cwmp.notifications;
+	return &cwmp->notifications;
 }
 
 void cwmp_clear_notifications(void)
 {
 	struct notification *n, *p;
-	list_for_each_entry_safe(n, p, &cwmp.notifications, list) {
+	list_for_each_entry_safe(n, p, &cwmp->notifications, list) {
 		free(n->parameter);
 		free(n->value);
 		list_del(&n->list);
@@ -242,24 +237,14 @@ void cwmp_clear_notifications(void)
 int cwmp_set_parameter_write_handler(char *name, char *value)
 {
 	if((strcmp(name, "InternetGatewayDevice.ManagementServer.PeriodicInformEnable")) == 0) {
-		cwmp.periodic_inform_enabled = atoi(value);
+		cwmp->periodic_inform_enabled = atoi(value);
 	}
 
 	if((strcmp(name, "InternetGatewayDevice.ManagementServer.PeriodicInformInterval")) == 0) {
-		cwmp.periodic_inform_interval = atoi(value);
-		uloop_timeout_set(&periodic_inform_timer, cwmp.periodic_inform_interval * 1000);
+		cwmp->periodic_inform_interval = atoi(value);
+		uloop_timeout_set(&periodic_inform_timer, cwmp->periodic_inform_interval * 1000);
 	}
 
 	return external_set_action_write("value", name, value);
-}
-
-char * cwmp_get_event_code(void)
-{
-	return freecwmp_str_event_code(cwmp.event_code);
-}
-
-int cwmp_get_retry_count(void)
-{
-	return cwmp.retry_count;
 }
 

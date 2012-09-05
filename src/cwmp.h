@@ -19,6 +19,18 @@ struct notification {
 	char *value;
 };
 
+
+struct cwmp_internal {
+	int event_code;
+	int periodic_inform_enabled;
+	uint64_t periodic_inform_interval;
+	int retry_count;
+	struct list_head notifications;
+};
+
+extern struct cwmp_internal *cwmp;
+
+
 static void cwmp_periodic_inform(struct uloop_timeout *timeout);
 static void cwmp_do_inform(struct uloop_timeout *timeout);
 
@@ -27,13 +39,10 @@ void cwmp_exit(void);
 int cwmp_inform(void);
 int cwmp_handle_messages(void);
 void cwmp_connection_request(int code);
-void cwmp_reload(void);
 void cwmp_add_notification(char *parameter, char *value);
 struct list_head * cwmp_get_notifications();
 int cwmp_set_parameter_write_handler(char *name, char *value);
 void cwmp_clear_notifications(void);
-char * cwmp_get_event_code(void);
-int cwmp_get_retry_count(void);
 
 #endif
 
