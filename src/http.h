@@ -11,6 +11,7 @@
 #define _FREECWMP_HTTP_H__
 
 #include <stdint.h>
+
 #include <libubox/uloop.h>
 
 #ifdef HTTP_CURL

@@ -23,9 +23,10 @@
 #include <libubox/uloop.h>
 
 #include "freecwmp.h"
+
 #include "config.h"
-#include "cwmp/cwmp.h"
-#include "ubus/ubus.h"
+#include "cwmp.h"
+#include "ubus.h"
 
 static void freecwmp_kickoff(struct uloop_timeout *);
 static void freecwmp_do_reload(struct uloop_timeout *timeout);

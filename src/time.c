@@ -11,7 +11,7 @@
 
 #include "time.h"
 
-#include "../freecwmp.h"
+#include "freecwmp.h"
 
 char local_time[26] = {0};
 

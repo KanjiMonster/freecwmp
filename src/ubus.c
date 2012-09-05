@@ -11,9 +11,11 @@
 #include <libubus.h>
 #include <libfreecwmp.h>
 
-#include "../freecwmp.h"
-#include "../config.h"
-#include "../cwmp/cwmp.h"
+#include "ubus.h"
+
+#include "config.h"
+#include "cwmp.h"
+#include "freecwmp.h"
 
 static struct ubus_context *ctx = NULL;
 

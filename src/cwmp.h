@@ -36,8 +36,8 @@ int cwmp_get_parameter_handler(char *name, char **value);
 int cwmp_get_notification_handler(char *name, char **value);
 void cwmp_clear_notifications(void);
 int cwmp_download_handler(char *url, char *size);
-int8_t cwmp_reboot_handler(void);
-int8_t cwmp_factory_reset_handler(void);
+int cwmp_reboot_handler(void);
+int cwmp_factory_reset_handler(void);
 char * cwmp_get_event_code(void);
 int cwmp_get_retry_count(void);
 

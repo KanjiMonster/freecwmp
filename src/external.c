@@ -19,8 +19,9 @@
 
 #include <libubox/uloop.h>
 
-#include "../freecwmp.h"
 #include "external.h"
+
+#include "freecwmp.h"
 
 static struct uloop_process uproc;
 

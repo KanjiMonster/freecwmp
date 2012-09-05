@@ -34,9 +34,9 @@
 
 #include "http.h"
 
-#include "../freecwmp.h"
-#include "../config.h"
-#include "../cwmp/cwmp.h"
+#include "config.h"
+#include "cwmp.h"
+#include "freecwmp.h"
 
 static struct http_client http_c;
 static struct http_server http_s;

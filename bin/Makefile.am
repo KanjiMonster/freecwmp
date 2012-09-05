@@ -1,24 +1,24 @@
 bin_PROGRAMS = freecwmpd
 
 freecwmpd_SOURCES =		\
-	../src/freecwmp.h	\
-	../src/freecwmp.c	\
+	../src/b64.h		\
+	../src/b64.c		\
 	../src/config.h		\
 	../src/config.c		\
-	../src/cwmp/cwmp.h	\
-	../src/cwmp/cwmp.c	\
-	../src/cwmp/external.h	\
-	../src/cwmp/external.c	\
-	../src/http/b64.h	\
-	../src/http/b64.c	\
-	../src/http/http.h	\
-	../src/http/http.c	\
-	../src/mix/time.h	\
-	../src/mix/time.c	\
-	../src/ubus/ubus.h	\
-	../src/ubus/ubus.c	\
-	../src/xml/xml.h	\
-	../src/xml/xml.c
+	../src/cwmp.h		\
+	../src/cwmp.c		\
+	../src/external.h	\
+	../src/external.c	\
+	../src/freecwmp.h	\
+	../src/freecwmp.c	\
+	../src/http.h		\
+	../src/http.c		\
+	../src/time.h		\
+	../src/time.c		\
+	../src/ubus.h		\
+	../src/ubus.c		\
+	../src/xml.h		\
+	../src/xml.c
 
 freecwmpd_CFLAGS =		\
 	$(AM_CFLAGS)		\

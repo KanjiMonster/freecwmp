@@ -9,13 +9,13 @@
 
 #include <microxml.h>
 
-#include "../freecwmp.h"
-#include "../config.h"
-#include "../cwmp/cwmp.h"
-#include "../cwmp/messages.h"
-#include "../mix/time.h"
-
 #include "xml.h"
+
+#include "config.h"
+#include "cwmp.h"
+#include "freecwmp.h"
+#include "messages.h"
+#include "time.h"
 
 const static char *soap_env_url = "http://schemas.xmlsoap.org/soap/envelope/";
 const static char *soap_enc_url = "http://schemas.xmlsoap.org/soap/encoding/";

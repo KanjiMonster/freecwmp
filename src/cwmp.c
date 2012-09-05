@@ -9,15 +9,17 @@
 
 #include <stdlib.h>
 #include <string.h>
+
 #include <libfreecwmp.h>
 #include <libubox/uloop.h>
 
 #include "cwmp.h"
+
+#include "config.h"
 #include "external.h"
-#include "../freecwmp.h"
-#include "../config.h"
-#include "../http/http.h"
-#include "../xml/xml.h"
+#include "freecwmp.h"
+#include "http.h"
+#include "xml.h"
 
 static struct cwmp {
 	int event_code;

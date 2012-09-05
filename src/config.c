@@ -13,7 +13,8 @@
 #include <libfreecwmp.h>
 
 #include "config.h"
-#include "cwmp/cwmp.h"
+
+#include "cwmp.h"
 
 static bool first_run = true;
 static struct uci_context *uci_ctx;
