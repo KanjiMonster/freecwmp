@@ -7,12 +7,14 @@
  *	Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
  */
 
+#include <libfreecwmp.h>
 #include <microxml.h>
 
 #include "xml.h"
 
 #include "config.h"
 #include "cwmp.h"
+#include "external.h"
 #include "freecwmp.h"
 #include "messages.h"
 #include "time.h"
@@ -277,8 +279,7 @@ xml_prepare_inform_message(char **msg_out)
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
 	c = NULL;
-	status = cwmp_get_parameter_handler(tmp, &c);
-	if (status != FC_SUCCESS)
+	if (external_get_action("value", tmp, &c))
 		goto error;
 	if (c) {
 		busy_node = mxmlNewText(busy_node, 0, c);
@@ -295,8 +296,7 @@ xml_prepare_inform_message(char **msg_out)
 	if (mxmlGetType(busy_node) != MXML_ELEMENT)
 		goto error;
 	c = NULL;
-	status = cwmp_get_parameter_handler(tmp, &c);
-	if (status != FC_SUCCESS)
+	if (external_get_action("value", tmp, &c))
 		goto error;
 	if (c) {
 		busy_node = mxmlNewText(busy_node, 0, c);
@@ -505,9 +505,10 @@ set_parameter:
 		busy_node = mxmlWalkNext(busy_node, node, MXML_DESCEND);
 	}
 
-	status = cwmp_set_action_execute_handler();
-	if (status != FC_SUCCESS)
+	if (external_set_action_execute())
 		goto error_set_parameter;
+
+	config_load();
 
 	if (node) {
 		goto done_set_parameter;
@@ -549,8 +550,7 @@ get_parameter:
 			parameter_name = busy_node->value.text.string;
 		}
 		if (parameter_name) {
-			status = cwmp_get_parameter_handler(parameter_name, &parameter_value);
-			if (status != FC_SUCCESS)
+			if (external_get_action("value", parameter_name, &parameter_value))
 				goto error_get_parameter;
 			att_cnt++;
 			tmp_node = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
@@ -649,8 +649,8 @@ set_parameter_attributes:
 			parameter_notification = busy_node->value.text.string;
 		}
 		if (attr_notification_update && parameter_name && parameter_notification) {
-			status = cwmp_set_notification_write_handler(parameter_name, parameter_notification);
-			if (status != FC_SUCCESS)
+			if (external_set_action_write("notification",
+				parameter_name, parameter_notification))
 				goto error_set_notification;
 			attr_notification_update = 0;
 			parameter_name = NULL;
@@ -659,9 +659,10 @@ set_parameter_attributes:
 		busy_node = mxmlWalkNext(busy_node, node, MXML_DESCEND);
 	}
 
-	status = cwmp_set_action_execute_handler();
-	if (status != FC_SUCCESS)
+	if (external_set_action_execute())
 		goto error_set_notification;
+
+	config_load();
 
 	if (node) {
 		goto done_set_notification;
@@ -723,8 +724,8 @@ download:
 	busy_node = mxmlFindElement(tmp_node, tree_out, "Status", NULL, NULL, MXML_DESCEND);
 	if (!busy_node)
 		goto error;
-	status = cwmp_download_handler(download_url, download_size);
-	if (status != FC_SUCCESS)
+
+	if (external_download(download_url, download_size))
 		busy_node = mxmlNewText(busy_node, 0, "9000");
 	else
 		busy_node = mxmlNewText(busy_node, 0, "0");
@@ -758,8 +759,7 @@ factory_reset:
 	if (!tmp_node)
 		goto error;
 
-	status = cwmp_factory_reset_handler();
-	if (status != FC_SUCCESS)
+	if (external_simple("factory_reset"))
 		goto error_factory_reset;
 
 	if (node) {
@@ -784,8 +784,7 @@ reboot:
 	if (!tmp_node)
 		goto error;
 
-	status = cwmp_reboot_handler();
-	if (status != FC_SUCCESS)
+	if (external_simple("reboot"))
 		goto error_reboot;
 
 	if (node) {

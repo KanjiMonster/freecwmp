@@ -346,8 +346,8 @@ http_new_client(struct uloop_fd *ufd, unsigned events)
 
 					username = NULL;
 					password = NULL;
-					cwmp_get_parameter_handler("InternetGatewayDevice.ManagementServer.ConnectionRequestUsername", &username);
-					cwmp_get_parameter_handler("InternetGatewayDevice.ManagementServer.ConnectionRequestPassword", &password);
+					external_get_action("value", "InternetGatewayDevice.ManagementServer.ConnectionRequestUsername", &username);
+					external_get_action("value", "InternetGatewayDevice.ManagementServer.ConnectionRequestPassword", &password);
 
 					len = snprintf(NULL, 0, "%s:%s", username, password);
 					auth_basic_check = (char *) calloc((len + 1), sizeof(char));

@@ -29,15 +29,10 @@ void cwmp_connection_request(int code);
 void cwmp_reload(void);
 void cwmp_add_notification(char *parameter, char *value);
 struct list_head * cwmp_get_notifications();
-int cwmp_set_notification_write_handler(char *name, char *value);
 int cwmp_set_parameter_write_handler(char *name, char *value);
 int cwmp_set_action_execute_handler();
-int cwmp_get_parameter_handler(char *name, char **value);
 int cwmp_get_notification_handler(char *name, char **value);
 void cwmp_clear_notifications(void);
-int cwmp_download_handler(char *url, char *size);
-int cwmp_reboot_handler(void);
-int cwmp_factory_reset_handler(void);
 char * cwmp_get_event_code(void);
 int cwmp_get_retry_count(void);
 

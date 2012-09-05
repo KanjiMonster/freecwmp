@@ -52,14 +52,14 @@ void cwmp_init(void)
 	cwmp.periodic_inform_interval = 0;
 	cwmp.event_code = config->local->event;
 
-	cwmp_get_parameter_handler("InternetGatewayDevice.ManagementServer.PeriodicInformInterval", &c);
+	external_get_action("value", "InternetGatewayDevice.ManagementServer.PeriodicInformInterval", &c);
 	if (c) {
 		cwmp.periodic_inform_interval = atoi(c);
 		uloop_timeout_set(&periodic_inform_timer, cwmp.periodic_inform_interval * 1000);
 	}
 	FREE(c);
 
-	cwmp_get_parameter_handler("InternetGatewayDevice.ManagementServer.PeriodicInformEnable", &c);
+	external_get_action("value", "InternetGatewayDevice.ManagementServer.PeriodicInformEnable", &c);
 	if (c) {
 		cwmp.periodic_inform_enabled = atoi(c);
 	}
@@ -186,7 +186,7 @@ void cwmp_connection_request(int code)
 void cwmp_add_notification(char *parameter, char *value)
 {
 	char *c = NULL;
-	cwmp_get_notification_handler(parameter, &c);
+	external_get_action("notification", parameter, &c);
 	if (!c) return;
 
 	bool uniq = true;
@@ -236,9 +236,6 @@ void cwmp_clear_notifications(void)
 
 int cwmp_set_parameter_write_handler(char *name, char *value)
 {
-	freecwmp_log_message(NAME, L_NOTICE,
-		"received set parameter '%s':'%s'\n", name, value);
-
 	if((strcmp(name, "InternetGatewayDevice.ManagementServer.PeriodicInformEnable")) == 0) {
 		cwmp.periodic_inform_enabled = atoi(value);
 	}
@@ -249,63 +246,6 @@ int cwmp_set_parameter_write_handler(char *name, char *value)
 	}
 
 	return external_set_action_write("value", name, value);
-}
-
-int cwmp_set_notification_write_handler(char *name, char *value)
-{
-
-	freecwmp_log_message(NAME, L_NOTICE,
-		"received set notification '%s':'%s'\n", name, value);
-
-	return external_set_action_write("notification", name, value);
-}
-
-int cwmp_set_action_execute_handler()
-{
-	if (external_set_action_execute())
-		return -1;
-
-	config_load();
-	return 0;
-}
-
-int cwmp_get_parameter_handler(char *name, char **value)
-{
-	freecwmp_log_message(NAME, L_NOTICE,
-		"received get parameter '%s'\n", name);
-
-	return external_get_action("value", name, value);
-}
-
-int cwmp_get_notification_handler(char *name, char **value)
-{
-	freecwmp_log_message(NAME, L_NOTICE,
-		"received get notification '%s'\n", name);
-
-	return external_get_action("notification", name, value);
-}
-
-int cwmp_download_handler(char *url, char *size)
-{
-	freecwmp_log_message(NAME, L_NOTICE,
-		"received download url '%s'\n", url);
-
-	return external_download(url, size);
-}
-
-
-int cwmp_reboot_handler(void)
-{
-	freecwmp_log_message(NAME, L_NOTICE, "received reboot request\n");
-
-	return external_simple("reboot");
-}
-
-int cwmp_factory_reset_handler(void)
-{
-	freecwmp_log_message(NAME, L_NOTICE, "received factory reset request\n");
-
-	return external_simple("factory_reset");
 }
 
 char * cwmp_get_event_code(void)

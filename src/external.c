@@ -17,6 +17,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
+#include <libfreecwmp.h>
 #include <libubox/uloop.h>
 
 #include "external.h"
@@ -27,6 +28,9 @@ static struct uloop_process uproc;
 
 int external_get_action(char *action, char *name, char **value)
 {
+	freecwmp_log_message(NAME, L_NOTICE,
+		"executing get %s '%s'\n", action, name);
+
 	int pfds[2];
 	if (pipe(pfds) < 0)
 		return -1;
@@ -90,6 +94,9 @@ int external_get_action(char *action, char *name, char **value)
 
 int external_set_action_write(char *action, char *name, char *value)
 {
+	freecwmp_log_message(NAME, L_NOTICE,
+		"adding to set %s script '%s'\n", action, name);
+
 	FILE *fp;
 
 	if (access(fc_script_set_actions, R_OK | W_OK | X_OK) != -1) {
@@ -120,6 +127,8 @@ int external_set_action_write(char *action, char *name, char *value)
 
 int external_set_action_execute()
 {
+	freecwmp_log_message(NAME, L_NOTICE, "executing set script\n");
+
 	if ((uproc.pid = fork()) == -1) {
 		return -1;
 	}
@@ -140,7 +149,6 @@ int external_set_action_execute()
 		return -1;
 
 	/* parent */
-
 	int status;
 	while (wait(&status) != uproc.pid) {
 		DD("waiting for child to exit");
@@ -156,6 +164,9 @@ int external_set_action_execute()
 
 int external_simple(char *arg)
 {
+	freecwmp_log_message(NAME, L_NOTICE, 
+		"executing %s request\n", arg);
+
 	if ((uproc.pid = fork()) == -1)
 		return -1;
 
@@ -176,7 +187,6 @@ int external_simple(char *arg)
 		return -1;
 
 	/* parent */
-
 	int status;
 	while (wait(&status) != uproc.pid) {
 		DD("waiting for child to exit");
@@ -189,6 +199,9 @@ int external_simple(char *arg)
 
 int external_download(char *url, char *size)
 {
+	freecwmp_log_message(NAME, L_NOTICE,
+		"executing download url '%s'\n", url);
+
 	if ((uproc.pid = fork()) == -1)
 		return -1;
 
