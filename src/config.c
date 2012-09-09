@@ -334,6 +334,11 @@ next:
 		return -1;
 	}
 
+	if (!config->device->software_version) {
+		D("in device you must define software_version\n");
+		return -1;
+	}
+
 	return 0;
 }
 
