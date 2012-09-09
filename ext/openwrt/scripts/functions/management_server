@@ -85,14 +85,22 @@ freecwmp_set_parameter_value "$parm" "$1"
 }
 
 get_management_server_connection_request_url() {
-local tmp=${FLAGS_value}
-FLAGS_value=${FLAGS_TRUE}
-local ip=`get_wan_device_mng_interface_ip`
-local port=`get_management_server_x_freecwmp_org__connection_request_port`
-FLAGS_value=$tmp
-if [ -n "$ip" -a -n "$port" ]; then
-	freecwmp_output "InternetGatewayDevice.ManagementServer.ConnectionRequestURL" "http://$ip:$port/"
+local val
+if [ -z "$default_management_server_connection_request_url" ]; then
+	local tmp=${FLAGS_value}
+	FLAGS_value=${FLAGS_TRUE}
+	local ip=`get_wan_device_mng_interface_ip`
+	local port=`get_management_server_x_freecwmp_org__connection_request_port`
+	FLAGS_value=$tmp
+
+	if [ -n "$ip" -a -n "$port" ]; then
+		val="http://$ip:$port/"
+	fi
+else
+	val=$default_management_server_connection_request_url
 fi
+
+freecwmp_output "InternetGatewayDevice.ManagementServer.ConnectionRequestURL" "$val"
 }
 
 # TODO: InternetGatewayDevice.ManagementServer.PeriodicInformTime
