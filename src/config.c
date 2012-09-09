@@ -329,6 +329,11 @@ next:
 		return -1;
 	}
 
+	if (!config->device->hardware_version) {
+		D("in device you must define hardware_version\n");
+		return -1;
+	}
+
 	return 0;
 }
 
