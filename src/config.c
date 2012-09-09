@@ -324,6 +324,11 @@ next:
 		return -1;
 	}
 
+	if (!config->device->serial_number) {
+		D("in device you must define serial_number\n");
+		return -1;
+	}
+
 	return 0;
 }
 
