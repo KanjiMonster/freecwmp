@@ -253,7 +253,6 @@ static void config_free_device(void)
 	FREE(config->device->serial_number);
 	FREE(config->device->hardware_version);
 	FREE(config->device->software_version);
-	FREE(config->device->provisioning_code);
 	FREE(config->device);
 }
 
@@ -310,11 +309,6 @@ section_found:
 			goto next;
 		}
 
-		if (!strcmp((uci_to_option(e))->e.name, "provisioning_code")) {
-			config->device->provisioning_code = strdup(uci_to_option(e)->v.string);
-			DD("freecwmp.@device[0].provisioning_code=%s\n", config->device->provisioning_code);
-			goto next;
-		}
 next:
 		;
 	}

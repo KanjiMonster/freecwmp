@@ -37,7 +37,6 @@ struct device {
 	char *serial_number;
 	char *hardware_version;
 	char *software_version;
-	char *provisioning_code;
 };
 
 struct local {
