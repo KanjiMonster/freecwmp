@@ -319,6 +319,11 @@ next:
 		;
 	}
 
+	if (!config->device->product_class) {
+		D("in device you must define product_class\n");
+		return -1;
+	}
+
 	return 0;
 }
 
