@@ -35,6 +35,8 @@ config scripts
 	list location /usr/share/freecwmp/functions/management_server
 	list get_value_function get_management_server
 	list set_value_function set_management_server
+	list get_value_function get_management_server_generic
+	list set_value_function set_management_server_generic
 	list location /usr/share/freecwmp/functions/voice_service
 	list get_value_function get_voice_service
 	list set_value_function set_voice_service

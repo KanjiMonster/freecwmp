@@ -123,8 +123,6 @@ set_management_server_connection_request_password() {
 /sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@local[0].password="$1"
 }
 
-# OPTIONAL: InternetGatewayDevice.ManagementServer.UpgradesManaged
-
 get_management_server_x_freecwmp_org__acs_scheme() {
 local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@acs[0].scheme 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.X_freecwmp_org__ACS_Scheme" "$val"
@@ -291,4 +289,27 @@ case "$1" in
 	;;
 esac
 /sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit
+}
+
+check_parameter_management_server_generic() {
+case "$1" in
+	InternetGatewayDevice.ManagementServer.UpgradesManaged)
+	return 0
+	;;
+esac
+return 1
+}
+
+get_management_server_generic() {
+	check_parameter_management_server_generic "$1" ; _tmp=$? ; if [ "$_tmp" -eq 1 ]; then return 0; fi
+
+	freecwmp_get_parameter_value "val" "$1"
+	freecwmp_value_output "$1" "$val"
+}
+
+set_management_server_generic() {
+	check_parameter_management_server_generic "$1" ; _tmp=$? ; if [ "$_tmp" -eq 1 ]; then return 0; fi
+
+	freecwmp_set_parameter_value "$1" "$2"
+	/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit
 }
