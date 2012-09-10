@@ -96,7 +96,7 @@ int cwmp_inform(void)
 		goto error;
 	}
 	
-	if (msg_in && xml_parse_inform_response_message(msg_in, &msg_out)) {
+	if (msg_in && xml_parse_inform_response_message(msg_in)) {
 		D("parse xml message from ACS failed\n");
 		goto error;
 	}

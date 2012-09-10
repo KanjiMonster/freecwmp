@@ -10,6 +10,8 @@
 #ifndef _FREECWMP_XML_H__
 #define _FREECWMP_XML_H__
 
+#include <microxml.h>
+
 static struct cwmp_namespaces
 {
 	char *soap_env;
@@ -17,14 +19,42 @@ static struct cwmp_namespaces
 	char *xsd;
 	char *xsi;
 	char *cwmp;
-} ns;
+};
 
-int8_t xml_init(void);
-int8_t xml_exit(void);
+void xml_exit(void);
 
-int8_t xml_prepare_inform_message(char **msg_out);
-int8_t xml_parse_inform_response_message(char *msg_in, char **msg_out);
-int8_t xml_handle_message(char *msg_in, char **msg_out);
+int xml_prepare_inform_message(char **msg_out);
+int xml_parse_inform_response_message(char *msg_in);
+int xml_handle_message(char *msg_in, char **msg_out);
+
+static int xml_handle_set_parameter_values(mxml_node_t *body_in,
+					   mxml_node_t *tree_in,
+					   mxml_node_t *tree_out);
+
+static int xml_handle_get_parameter_values(mxml_node_t *body_in,
+					   mxml_node_t *tree_in,
+					   mxml_node_t *tree_out);
+
+static int xml_handle_set_parameter_attributes(mxml_node_t *body_in,
+					       mxml_node_t *tree_in,
+					       mxml_node_t *tree_out);
+
+static int xml_handle_download(mxml_node_t *body_in,
+			       mxml_node_t *tree_in,
+			       mxml_node_t *tree_out);
+
+static int xml_handle_factory_reset(mxml_node_t *body_in,
+				    mxml_node_t *tree_in,
+				    mxml_node_t *tree_out);
+
+static int xml_handle_reboot(mxml_node_t *body_in,
+			     mxml_node_t *tree_in,
+			     mxml_node_t *tree_out);
+
+static int xml_create_generic_fault_message(mxml_node_t *body,
+					    bool client,
+					    char *code,
+					    char *string);
 
 #endif
 
