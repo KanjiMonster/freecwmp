@@ -582,9 +582,15 @@ int xml_handle_get_parameter_values(mxml_node_t *body_in,
 		}
 
 		if (parameter_name) {
-			if (external_get_action("value",
-					parameter_name, &parameter_value))
+			if (!config_get_cwmp(parameter_name, &parameter_value)) {
+				// got the parameter value using libuci
+			} else if (!external_get_action("value",
+					parameter_name, &parameter_value)) {
+				// got the parameter value via external script
+			} else {
+				// error occurred when getting parameter value
 				goto out;
+			}
 			counter++;
 
 			n = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);

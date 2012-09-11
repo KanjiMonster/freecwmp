@@ -15,6 +15,7 @@
 #include "freecwmp.h"
 
 void config_load(void);
+int config_get_cwmp(char *parameter, char **value);
 
 struct acs {
 	char *scheme;

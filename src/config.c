@@ -336,6 +336,39 @@ next:
 	return 0;
 }
 
+int config_get_cwmp(char *parameter, char **value)
+{
+	struct uci_section *s;
+	struct uci_element *e1, *e2;
+
+	uci_foreach_element(&uci_freecwmp->sections, e1) {
+		s = uci_to_section(e1);
+
+		if (strcmp(s->type, "cwmp"))
+			continue;
+
+		bool found = false;
+		uci_foreach_element(&s->options, e2) {
+			if (!strcmp((uci_to_option(e2))->e.name, "parameter") &&
+			    !strcmp((uci_to_option(e2))->v.string, parameter)) {
+				found = true;
+				break;
+			}
+		}
+
+		uci_foreach_element(&s->options, e2) {
+			if (!strcmp((uci_to_option(e2))->e.name, "value") && found) {
+				*value = strdup(uci_to_option(e2)->v.string);
+				return 0;
+			}
+		}
+
+		if (found) return 1;
+	}
+
+	return 2;
+}
+
 static struct uci_package *
 config_init_package(const char *c)
 {
