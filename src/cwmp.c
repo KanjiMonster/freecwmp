@@ -51,18 +51,20 @@ void cwmp_init(void)
 
 	cwmp->event_code = config->local->event;
 
-	external_get_action("value", "InternetGatewayDevice.ManagementServer.PeriodicInformInterval", &c);
+	config_get_cwmp("InternetGatewayDevice.ManagementServer.PeriodicInformInterval", &c);
 	if (c) {
 		cwmp->periodic_inform_interval = atoi(c);
 		uloop_timeout_set(&periodic_inform_timer, cwmp->periodic_inform_interval * 1000);
+		free(c);
+		c = NULL;
 	}
-	FREE(c);
 
-	external_get_action("value", "InternetGatewayDevice.ManagementServer.PeriodicInformEnable", &c);
+	config_get_cwmp("InternetGatewayDevice.ManagementServer.PeriodicInformEnable", &c);
 	if (c) {
 		cwmp->periodic_inform_enabled = atoi(c);
+		free(c);
+		c = NULL;
 	}
-	FREE(c);
 
 	http_server_init();
 
