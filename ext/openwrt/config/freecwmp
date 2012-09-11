@@ -29,6 +29,8 @@ config scripts
 	list location /usr/share/freecwmp/functions/device_info
 	list get_value_function get_device_info
 	list set_value_function set_device_info
+	list get_value_function get_device_info_generic
+	list set_value_function set_device_info_generic
 	list location /usr/share/freecwmp/functions/lan_device
 	list get_value_function get_lan_device
 	list set_value_function set_lan_device
