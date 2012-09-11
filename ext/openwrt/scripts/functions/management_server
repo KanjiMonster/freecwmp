@@ -105,24 +105,6 @@ freecwmp_output "InternetGatewayDevice.ManagementServer.ConnectionRequestURL" "$
 
 # TODO: InternetGatewayDevice.ManagementServer.PeriodicInformTime
 
-get_management_server_connection_request_username() {
-local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@local[0].username 2> /dev/null`
-freecwmp_output "InternetGatewayDevice.ManagementServer.ConnectionRequestUsername" "$val"
-}
-
-set_management_server_connection_request_username() {
-/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@local[0].username="$1"
-}
-
-get_management_server_connection_request_password() {
-local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@local[0].password 2> /dev/null`
-freecwmp_output "InternetGatewayDevice.ManagementServer.ConnectionRequestPassword" "$val"
-}
-
-set_management_server_connection_request_password() {
-/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} set freecwmp.@local[0].password="$1"
-}
-
 get_management_server_x_freecwmp_org__acs_scheme() {
 local val=`/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} get freecwmp.@acs[0].scheme 2> /dev/null`
 freecwmp_output "InternetGatewayDevice.ManagementServer.X_freecwmp_org__ACS_Scheme" "$val"
@@ -181,8 +163,6 @@ case "$1" in
 	get_management_server_periodic_inform_enable
 	get_management_server_periodic_inform_interval
 	get_management_server_connection_request_url
-	get_management_server_connection_request_username
-	get_management_server_connection_request_password
 	get_management_server_x_freecwmp_org__acs_scheme
 	get_management_server_x_freecwmp_org__acs_hostname
 	get_management_server_x_freecwmp_org__acs_port
@@ -196,8 +176,6 @@ case "$1" in
 	get_management_server_periodic_inform_enable
 	get_management_server_periodic_inform_interval
 	get_management_server_connection_request_url
-	get_management_server_connection_request_username
-	get_management_server_connection_request_password
 	get_management_server_x_freecwmp_org__acs_scheme
 	get_management_server_x_freecwmp_org__acs_hostname
 	get_management_server_x_freecwmp_org__acs_port
@@ -221,12 +199,6 @@ case "$1" in
 	;;
 	InternetGatewayDevice.ManagementServer.ConnectionRequestURL)
 	get_management_server_connection_request_url
-	;;
-	InternetGatewayDevice.ManagementServer.ConnectionRequestUsername)
-	get_management_server_connection_request_username
-	;;
-	InternetGatewayDevice.ManagementServer.ConnectionRequestPassword)
-	get_management_server_connection_request_password
 	;;
 	InternetGatewayDevice.ManagementServer.X_freecwmp_org__ACS_Scheme)
 	get_management_server_x_freecwmp_org__acs_scheme
@@ -266,12 +238,6 @@ case "$1" in
 	InternetGatewayDevice.ManagementServer.ConnectionRequestURL)
 	set_management_server_connection_request_url "$2"
 	;;
-	InternetGatewayDevice.ManagementServer.ConnectionRequestUsername)
-	set_management_server_connection_request_username "$2"
-	;;
-	InternetGatewayDevice.ManagementServer.ConnectionRequestPassword)
-	set_management_server_connection_request_password "$2"
-	;;
 	InternetGatewayDevice.ManagementServer.X_freecwmp_org__ACS_Scheme)
 	set_management_server_x_freecwmp_org__acs_scheme "$2"
 	;;
@@ -293,6 +259,8 @@ esac
 
 check_parameter_management_server_generic() {
 case "$1" in
+	InternetGatewayDevice.ManagementServer.ConnectionRequestUsername|\
+	InternetGatewayDevice.ManagementServer.ConnectionRequestPassword|\
 	InternetGatewayDevice.ManagementServer.UpgradesManaged)
 	return 0
 	;;

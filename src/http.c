@@ -321,6 +321,17 @@ http_new_client(struct uloop_fd *ufd, unsigned events)
 					char *auth_basic_check = NULL;
 					int len;
 
+					username = NULL;
+					password = NULL;
+					config_get_cwmp("InternetGatewayDevice.ManagementServer.ConnectionRequestUsername", &username);
+					config_get_cwmp("InternetGatewayDevice.ManagementServer.ConnectionRequestPassword", &password);
+
+					if (!username || !password) {
+						// if we dont have username or password configured proceed with connecting to ACS
+						auth_status = 1;
+						goto http_end_child;
+					}
+
 					c1 = strrchr(buffer, '\r');
 					c2 = strrchr(buffer, '\n');
 
@@ -343,11 +354,6 @@ http_new_client(struct uloop_fd *ufd, unsigned events)
 					acs_auth_basic = (char *) zstream_b64decode(val, &size);
 					if (!acs_auth_basic)
 						continue;
-
-					username = NULL;
-					password = NULL;
-					external_get_action("value", "InternetGatewayDevice.ManagementServer.ConnectionRequestUsername", &username);
-					external_get_action("value", "InternetGatewayDevice.ManagementServer.ConnectionRequestPassword", &password);
 
 					len = snprintf(NULL, 0, "%s:%s", username, password);
 					auth_basic_check = (char *) calloc((len + 1), sizeof(char));
