@@ -10,9 +10,6 @@
 #ifndef _FREECWMP_FREECWMP_H__
 #define _FREECWMP_FREECWMP_H__
 
-#define FC_SUCCESS 0
-#define FC_ERROR 1
-
 #define NAME	"freecwmpd"
 
 #define FREE(x) if (!x) { free(x) ; x = NULL; }
