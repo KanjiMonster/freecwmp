@@ -13,13 +13,6 @@
 #define FC_SUCCESS 0
 #define FC_ERROR 1
 
-#ifdef DEVEL_DEBUG
-#	define FC_DEVEL_DEBUG(msg) \
-		printf("__[ %s | %s ]__ : %s\n", __FILE__, __func__, msg);
-#else
-#	define FC_DEVEL_DEBUG(msg)
-#endif
-
 #define NAME	"freecwmpd"
 
 #define FREE(x) if (!x) { free(x) ; x = NULL; }

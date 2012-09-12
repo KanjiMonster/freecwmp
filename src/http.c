@@ -430,7 +430,5 @@ http_del_client(struct uloop_process *uproc, int ret)
 	} else {
 		DDF("+++ HTTP SERVER CONNECTION FAILED +++\n");
 	}
-
-	FC_DEVEL_DEBUG("exit");
 }
 

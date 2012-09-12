@@ -20,8 +20,6 @@ AM_CONDITIONAL([HTTP_CURL], [test "x$enable_http" = "xcurl" ])
 
 AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debugging messages])], AC_DEFINE(DEBUG),)
 AC_ARG_ENABLE(devel, [AS_HELP_STRING([--enable-devel], [enable development messages])], AC_DEFINE(DEVEL),)
-# TODO: get rid of this one
-AC_ARG_ENABLE(devel_debug, [AS_HELP_STRING([--enable-devel-debug], [enable development debugging messages])], AC_DEFINE(DEVEL_DEBUG),)
 AC_ARG_ENABLE(dummy_mode, [AS_HELP_STRING([--enable-dummy-mode], [enable development mode])], AC_DEFINE(DUMMY_MODE),)
 
 # checks for programs
