@@ -27,6 +27,7 @@ static struct uloop_timeout inform_timer = { .cb = cwmp_do_inform };
 static struct uloop_timeout periodic_inform_timer = { .cb = cwmp_periodic_inform };
 
 pthread_mutex_t event_lock;
+pthread_mutex_t notification_lock;
 
 static void cwmp_periodic_inform(struct uloop_timeout *timeout)
 {
@@ -64,6 +65,7 @@ void cwmp_init(void)
 	}
 
 	pthread_mutex_init(&event_lock, NULL);
+	pthread_mutex_init(&notification_lock, NULL);
 
 	http_server_init();
 }
@@ -198,18 +200,22 @@ void cwmp_add_event(int code, char *key)
 			break;
 		}
 	}
+
+	pthread_mutex_unlock(&event_lock);
 				
 	if (uniq) {
 		int len = key ? strlen(key) : 0;
 		e = calloc(1, sizeof(*e) + sizeof(int) + sizeof(char *) + len);
 		if (!e) return;
 
+		pthread_mutex_lock(&event_lock);
+
 		list_add_tail(&e->list, &cwmp->events);
 		e->code = code;
 		e->key = key ? strdup(key) : NULL;
-	}
 
-	pthread_mutex_unlock(&event_lock);
+		pthread_mutex_unlock(&event_lock);
+	}
 }
 
 void cwmp_clear_events(void)
@@ -235,8 +241,10 @@ void cwmp_add_notification(char *parameter, char *value)
 
 	struct notification *n = NULL;
 	struct list_head *l, *p;
-
 	bool uniq = true;
+
+	pthread_mutex_lock(&notification_lock);
+
 	list_for_each(p, &cwmp->notifications) {
 		n = list_entry(p, struct notification, list);
 		if (!strcmp(n->parameter, parameter)) {
@@ -246,15 +254,22 @@ void cwmp_add_notification(char *parameter, char *value)
 			break;
 		}
 	}
+
+	pthread_mutex_unlock(&notification_lock);
 				
 	if (uniq) {
 		n = calloc(1, sizeof(*n) + sizeof(char *) + strlen(parameter) + strlen(value));
 		if (!n) return;
 
+		pthread_mutex_lock(&notification_lock);
+
 		list_add_tail(&n->list, &cwmp->notifications);
 		n->parameter = strdup(parameter);
 		n->value = strdup(value);
+
+		pthread_mutex_unlock(&notification_lock);
 	}
+
 
 	cwmp_add_event(VALUE_CHANGE, NULL);
 	if (!strncmp(c, "2", 1)) {
@@ -265,12 +280,17 @@ void cwmp_add_notification(char *parameter, char *value)
 void cwmp_clear_notifications(void)
 {
 	struct notification *n, *p;
+
+	pthread_mutex_lock(&notification_lock);
+
 	list_for_each_entry_safe(n, p, &cwmp->notifications, list) {
 		FREE(n->parameter);
 		FREE(n->value);
 		list_del(&n->list);
 		FREE(n);
 	}
+
+	pthread_mutex_unlock(&notification_lock);
 }
 
 int cwmp_set_parameter_write_handler(char *name, char *value)

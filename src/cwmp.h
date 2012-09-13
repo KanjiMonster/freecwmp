@@ -37,6 +37,7 @@ struct cwmp_internal {
 
 extern struct cwmp_internal *cwmp;
 extern pthread_mutex_t event_lock;
+extern pthread_mutex_t notification_lock;
 
 static void cwmp_periodic_inform(struct uloop_timeout *timeout);
 static void cwmp_do_inform(struct uloop_timeout *timeout);

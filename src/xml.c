@@ -114,26 +114,27 @@ static int xml_prepare_events_inform(mxml_node_t *tree)
 	struct event *event;
 
 	b1 = mxmlFindElement(tree, tree, "Event", NULL, NULL, MXML_DESCEND);
+	if (!b1) return -1;
 
 	pthread_mutex_lock(&event_lock);
 
 	list_for_each(p, &cwmp->events) {
 		event = list_entry (p, struct event, list);
 		node = mxmlNewElement (b1, "EventStruct");
-		if (!node) return -1;
+		if (!node) goto error;
 
 		b2 = mxmlNewElement (node, "EventCode");
-		if (!b2) return -1;
+		if (!b2) goto error;
 
 		b2 = mxmlNewText(b2, 0, freecwmp_str_event_code(event->code));
-		if (!b2) return -1;
+		if (!b2) goto error;
 
 		b2 = mxmlNewElement (node, "CommandKey");
-		if (!b2) return -1;
+		if (!b2) goto error;
 
 		if (event->key) {
 			b2 = mxmlNewText(b2, 0, event->key);
-			if (!b2) return -1;
+			if (!b2) goto error;
 		}
 
 		mxmlAdd(b1, MXML_ADD_AFTER, MXML_ADD_TO_PARENT, node);
@@ -151,6 +152,57 @@ static int xml_prepare_events_inform(mxml_node_t *tree)
 	}
 
 	return 0;
+
+error:
+	pthread_mutex_unlock(&event_lock);
+	return -1;
+}
+
+static int xml_prepare_notifications_inform(mxml_node_t *tree)
+{
+	/* notifications */
+	mxml_node_t *node, *b;
+	char *c;
+	int n = 0;
+	struct list_head *p;
+	struct notification *notification;
+
+	b = mxmlFindElement(tree, tree, "Event", NULL, NULL, MXML_DESCEND);
+	if (!b) return -1;
+
+	pthread_mutex_lock(&notification_lock);
+
+	list_for_each(p, &cwmp->notifications) {
+		notification = list_entry(p, struct notification, list);
+
+		c = "InternetGatewayDevice.ManagementServer.ConnectionRequestURL";
+		b = mxmlFindElementText(tree, tree, c, MXML_DESCEND);
+		if (!b) goto error;
+		
+		b = b->parent->parent->parent;
+		b = mxmlNewElement(b, "ParameterValueStruct");
+		if (!b) goto error;
+
+		b = mxmlNewElement(b, "Name");
+		if (!b) goto error;
+
+		b = mxmlNewText(b, 0, notification->parameter);
+		if (!b) goto error;
+
+		b = b->parent->parent;
+		b = mxmlNewElement(b, "Value");
+		if (!b) goto error;
+
+		b = mxmlNewText(b, 0, notification->value);
+		if (!b) goto error;
+	}
+
+	pthread_mutex_unlock(&notification_lock);
+	return 0;
+
+error:
+	pthread_mutex_unlock(&notification_lock);
+	return -1;
 }
 
 int xml_prepare_inform_message(char **msg_out)
@@ -307,33 +359,8 @@ int xml_prepare_inform_message(char **msg_out)
 		if (!b) goto error;
 	}
 
-	/* notifications */
-	struct notification *n;
-	struct list_head *p;
-	list_for_each(p, &cwmp->notifications) {
-		n = list_entry(p, struct notification, list);
-
-		tmp = "InternetGatewayDevice.ManagementServer.ConnectionRequestURL";
-		b = mxmlFindElementText(tree, tree, tmp, MXML_DESCEND);
-		if (!b) goto error;
-		
-		b = b->parent->parent->parent;
-		b = mxmlNewElement(b, "ParameterValueStruct");
-		if (!b) goto error;
-
-		b = mxmlNewElement(b, "Name");
-		if (!b) goto error;
-
-		b = mxmlNewText(b, 0, n->parameter);
-		if (!b) goto error;
-
-		b = b->parent->parent;
-		b = mxmlNewElement(b, "Value");
-		if (!b) goto error;
-
-		b = mxmlNewText(b, 0, n->value);
-		if (!b) goto error;
-	}
+	if (xml_prepare_notifications_inform(tree))
+		goto error;
 
 	*msg_out = mxmlSaveAllocString(tree, MXML_NO_CALLBACK);
 
@@ -596,11 +623,10 @@ int xml_handle_get_parameter_values(mxml_node_t *body_in,
 				    mxml_node_t *tree_in,
 				    mxml_node_t *tree_out)
 {
-	mxml_node_t *b = body_in;
-	mxml_node_t *n;
-	char *c;
+	mxml_node_t *n, *b = body_in;
 	char *parameter_name = NULL;
 	char *parameter_value = NULL;
+	char *c;
 	int counter = 0;
 
 	n = mxmlFindElement(tree_out, tree_out, "soap_env:Body",
