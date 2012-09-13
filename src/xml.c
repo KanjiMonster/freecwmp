@@ -105,6 +105,54 @@ void xml_exit(void)
 	FREE(ns.cwmp);
 }
 
+static int xml_prepare_events_inform(mxml_node_t *tree)
+{
+	mxml_node_t *node, *b1, *b2;
+	char *c;
+	int n = 0;
+	struct list_head *p;
+	struct event *event;
+
+	b1 = mxmlFindElement(tree, tree, "Event", NULL, NULL, MXML_DESCEND);
+
+	pthread_mutex_lock(&event_lock);
+
+	list_for_each(p, &cwmp->events) {
+		event = list_entry (p, struct event, list);
+		node = mxmlNewElement (b1, "EventStruct");
+		if (!node) return -1;
+
+		b2 = mxmlNewElement (node, "EventCode");
+		if (!b2) return -1;
+
+		b2 = mxmlNewText(b2, 0, freecwmp_str_event_code(event->code));
+		if (!b2) return -1;
+
+		b2 = mxmlNewElement (node, "CommandKey");
+		if (!b2) return -1;
+
+		if (event->key) {
+			b2 = mxmlNewText(b2, 0, event->key);
+			if (!b2) return -1;
+		}
+
+		mxmlAdd(b1, MXML_ADD_AFTER, MXML_ADD_TO_PARENT, node);
+		n++;
+	}
+
+	pthread_mutex_unlock(&event_lock);
+
+	if (n) {
+		asprintf(&c, "cwmp:EventStruct[%u]", n);
+		if (!c) return -1;
+
+		mxmlElementSetAttr(b1, "soap_enc:arrayType", c);
+		FREE(c);
+	}
+
+	return 0;
+}
+
 int xml_prepare_inform_message(char **msg_out)
 {
 	mxml_node_t *tree, *b;
@@ -150,11 +198,8 @@ int xml_prepare_inform_message(char **msg_out)
 	b = mxmlNewText(b, 0, config->device->serial_number);
 	if (!b) goto error;
 
-	b = mxmlFindElement(tree, tree, "EventCode", NULL, NULL, MXML_DESCEND);
-	if (!b) goto error;
-
-	b = mxmlNewText(b, 0, freecwmp_str_event_code(cwmp->event_code));
-	if (!b) goto error;
+	if (xml_prepare_events_inform(tree))
+		goto error;
 
 	b = mxmlFindElement(tree, tree, "CurrentTime", NULL, NULL, MXML_DESCEND);
 	if (!b) goto error;
@@ -264,9 +309,8 @@ int xml_prepare_inform_message(char **msg_out)
 
 	/* notifications */
 	struct notification *n;
-	struct list_head *l, *p;
-	l = cwmp_get_notifications();
-	list_for_each(p, l) {
+	struct list_head *p;
+	list_for_each(p, &cwmp->notifications) {
 		n = list_entry(p, struct notification, list);
 
 		tmp = "InternetGatewayDevice.ManagementServer.ConnectionRequestURL";

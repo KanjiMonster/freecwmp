@@ -26,11 +26,13 @@ struct cwmp_internal *cwmp;
 static struct uloop_timeout inform_timer = { .cb = cwmp_do_inform };
 static struct uloop_timeout periodic_inform_timer = { .cb = cwmp_periodic_inform };
 
+pthread_mutex_t event_lock;
+
 static void cwmp_periodic_inform(struct uloop_timeout *timeout)
 {
 	if (cwmp->periodic_inform_enabled && cwmp->periodic_inform_interval) {
 		uloop_timeout_set(&periodic_inform_timer, cwmp->periodic_inform_interval * 1000);
-		cwmp->event_code = PERIODIC;
+		cwmp_add_event(PERIODIC, NULL);
 	}
 
 	if (cwmp->periodic_inform_enabled)
@@ -45,11 +47,6 @@ static void cwmp_do_inform(struct uloop_timeout *timeout)
 void cwmp_init(void)
 {
 	char *c = NULL;
-
-	cwmp = calloc(1, sizeof(struct cwmp_internal));
-	if (!cwmp) return;
-
-	cwmp->event_code = config->local->event;
 
 	config_get_cwmp("InternetGatewayDevice.ManagementServer.PeriodicInformInterval", &c);
 	if (c) {
@@ -66,9 +63,9 @@ void cwmp_init(void)
 		c = NULL;
 	}
 
-	http_server_init();
+	pthread_mutex_init(&event_lock, NULL);
 
-	INIT_LIST_HEAD(&cwmp->notifications);
+	http_server_init();
 }
 
 void cwmp_exit(void)
@@ -181,8 +178,53 @@ error:
 
 void cwmp_connection_request(int code)
 {
-	cwmp->event_code = code;
+	cwmp_clear_events();
+	cwmp_add_event(code, NULL);
 	uloop_timeout_set(&inform_timer, 500);
+}
+
+void cwmp_add_event(int code, char *key)
+{
+	struct event *e = NULL;
+	struct list_head *l, *p;
+	bool uniq = true;
+
+	pthread_mutex_lock(&event_lock);
+
+	list_for_each(p, &cwmp->events) {
+		e = list_entry(p, struct event, list);
+		if (e->code == code) {
+			uniq = false;
+			break;
+		}
+	}
+				
+	if (uniq) {
+		int len = key ? strlen(key) : 0;
+		e = calloc(1, sizeof(*e) + sizeof(int) + sizeof(char *) + len);
+		if (!e) return;
+
+		list_add_tail(&e->list, &cwmp->events);
+		e->code = code;
+		e->key = key ? strdup(key) : NULL;
+	}
+
+	pthread_mutex_unlock(&event_lock);
+}
+
+void cwmp_clear_events(void)
+{
+	struct event *n, *p;
+
+	pthread_mutex_lock(&event_lock);
+
+	list_for_each_entry_safe(n, p, &cwmp->events, list) {
+		FREE(n->key);
+		list_del(&n->list);
+		FREE(n);
+	}
+
+	pthread_mutex_unlock(&event_lock);
 }
 
 void cwmp_add_notification(char *parameter, char *value)
@@ -191,9 +233,10 @@ void cwmp_add_notification(char *parameter, char *value)
 	external_get_action("notification", parameter, &c);
 	if (!c) return;
 
-	bool uniq = true;
 	struct notification *n = NULL;
 	struct list_head *l, *p;
+
+	bool uniq = true;
 	list_for_each(p, &cwmp->notifications) {
 		n = list_entry(p, struct notification, list);
 		if (!strcmp(n->parameter, parameter)) {
@@ -213,26 +256,20 @@ void cwmp_add_notification(char *parameter, char *value)
 		n->value = strdup(value);
 	}
 
-	cwmp->event_code = VALUE_CHANGE;
+	cwmp_add_event(VALUE_CHANGE, NULL);
 	if (!strncmp(c, "2", 1)) {
 		cwmp_inform();
 	}
-}
-
-struct list_head *
-cwmp_get_notifications()
-{
-	return &cwmp->notifications;
 }
 
 void cwmp_clear_notifications(void)
 {
 	struct notification *n, *p;
 	list_for_each_entry_safe(n, p, &cwmp->notifications, list) {
-		free(n->parameter);
-		free(n->value);
+		FREE(n->parameter);
+		FREE(n->value);
 		list_del(&n->list);
-		free(n);
+		FREE(n);
 	}
 }
 

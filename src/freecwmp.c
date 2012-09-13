@@ -235,8 +235,16 @@ int main (int argc, char **argv)
 		}
 	}
 
-	uloop_init();
+	/* run early cwmp initialization */
+	cwmp = calloc(1, sizeof(struct cwmp_internal));
+	if (!cwmp) return;
+	
+	INIT_LIST_HEAD(&cwmp->events);
+	INIT_LIST_HEAD(&cwmp->notifications);
+
 	config_load();
+
+	uloop_init();
 
 	if (netlink_init()) {
 		D("netlink initialization failed\n");

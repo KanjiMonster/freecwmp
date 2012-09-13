@@ -13,7 +13,6 @@
 #include <libfreecwmp.h>
 
 #include "config.h"
-
 #include "cwmp.h"
 
 static bool first_run = true;
@@ -29,15 +28,16 @@ static void config_free_local(void) {
 	FREE(config->local->port);
 	FREE(config->local->ubus_socket);
 	FREE(config->local);
+	cwmp_clear_events();
 }
 
 static int config_init_local(void)
 {
 	struct uci_section *s;
-	struct uci_element *e;
+	struct uci_element *e1, *e2;
 
-	uci_foreach_element(&uci_freecwmp->sections, e) {
-		s = uci_to_section(e);
+	uci_foreach_element(&uci_freecwmp->sections, e1) {
+		s = uci_to_section(e1);
 		if (strcmp(s->type, "local") == 0)
 			goto section_found;
 	}
@@ -47,34 +47,37 @@ static int config_init_local(void)
 section_found:
 	config_free_local();
 
-	uci_foreach_element(&s->options, e) {
-		if (!strcmp((uci_to_option(e))->e.name, "interface")) {
-			config->local->interface = strdup(uci_to_option(e)->v.string);
+	uci_foreach_element(&s->options, e1) {
+		if (!strcmp((uci_to_option(e1))->e.name, "interface")) {
+			config->local->interface = strdup(uci_to_option(e1)->v.string);
 			DD("freecwmp.@local[0].interface=%s\n", config->local->interface);
 			goto next;
 		}
 
-		if (!strcmp((uci_to_option(e))->e.name, "port")) {
-			if (!atoi((uci_to_option(e))->v.string)) {
+		if (!strcmp((uci_to_option(e1))->e.name, "port")) {
+			if (!atoi((uci_to_option(e1))->v.string)) {
 				D("in section local port has invalid value...\n");
 				return -1;
 			}
-			config->local->port = strdup(uci_to_option(e)->v.string);
+			config->local->port = strdup(uci_to_option(e1)->v.string);
 			DD("freecwmp.@local[0].port=%s\n", config->local->port);
 			goto next;
 		}
 
-		if (!strcmp((uci_to_option(e))->e.name, "ubus_socket")) {
-			config->local->ubus_socket = strdup(uci_to_option(e)->v.string);
+		if (!strcmp((uci_to_option(e1))->e.name, "ubus_socket")) {
+			config->local->ubus_socket = strdup(uci_to_option(e1)->v.string);
 			DD("freecwmp.@local[0].ubus_socket=%s\n", config->local->ubus_socket);
 			goto next;
 		}
 
-		if (!strcmp((uci_to_option(e))->e.name, "event")) {
-			config->local->event =
-				freecwmp_int_event_code(uci_to_option(e)->v.string);
-
-			DD("freecwmp.@local[0].event=%s\n", uci_to_option(e)->v.string);
+		if (!strcmp((uci_to_option(e1))->e.name, "event") &&
+		    (uci_to_option(e1))->type == UCI_TYPE_LIST) {
+			uci_foreach_element(&((uci_to_option(e1))->v.list), e2) {
+				if (e2 && e2->name) {
+					cwmp_add_event(freecwmp_int_event_code(e2->name), NULL);
+					DD("freecwmp.@local[0].event=%s\n", e2->name);
+				}
+			}
 		}
 
 next:

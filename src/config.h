@@ -45,7 +45,6 @@ struct local {
 	char *interface;
 	char *port;
 	char *ubus_socket;
-	int event;
 };
 
 struct core_config {

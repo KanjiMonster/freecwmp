@@ -2,7 +2,8 @@ config local
 	option interface eth0
 	option port 7547
 	option ubus_socket /var/run/ubus.sock
-	option event bootstrap
+	list event bootstrap
+	list event boot
 
 config acs
 	option scheme http
