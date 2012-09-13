@@ -16,12 +16,7 @@
 				<ProductClass/>
 				<SerialNumber/>
 			</DeviceId>
-			<Event soap_enc:arrayType="cwmp:EventStruct[1]">
-				<EventStruct>
-					<EventCode/>
-					<CommandKey/>
-				</EventStruct>
-			</Event>
+			<Event soap_enc:arrayType="cwmp:EventStruct[0]" />
 			<MaxEnvelopes>1</MaxEnvelopes>
 			<CurrentTime/>
 			<RetryCount/>
