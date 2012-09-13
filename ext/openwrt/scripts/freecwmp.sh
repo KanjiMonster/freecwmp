@@ -18,8 +18,8 @@ DEFINE_string 'size' '' 'size of file to download [download only]' 's'
 FLAGS_HELP=`cat << EOF
 USAGE: $0 [flags] command [parameter] [values]
 command:
-  get [value|notification|all]
-  set [value|notification]
+  get [value|notification|tags|all]
+  set [value|notification|tag]
   download
   factory_reset
   reboot
@@ -42,6 +42,10 @@ case "$1" in
 			__arg1="$3"
 			__arg2="$4"
 			action="set_notification"
+		elif [ "$2" = "tag" ]; then
+			__arg1="$3"
+			__arg2="$4"
+			action="set_tag"
 		elif [ "$2" = "value" ]; then
 			__arg1="$3"
 			__arg2="$4"
@@ -56,6 +60,9 @@ case "$1" in
 		if [ "$2" = "notification" ]; then
 			__arg1="$3"
 			action="get_notification"
+		elif [ "$2" = "tags" ]; then
+			__arg1="$3"
+			action="get_tags"
 		elif [ "$2" = "value" ]; then
 			__arg1="$3"
 			action="get_value"
@@ -119,12 +126,22 @@ if [ "$action" = "set_value" ]; then
 fi
 
 if [ "$action" = "get_notification" -o "$action" = "get_all" ]; then
-	freecwmp_get_parameter_notification "val" "$__arg1"
-	freecwmp_notification_output "$__arg1" "$val"
+	freecwmp_get_parameter_notification "x_notification" "$__arg1"
+	freecwmp_notification_output "$__arg1" "$x_notification"
 fi
 
 if [ "$action" = "set_notification" ]; then
 	freecwmp_set_parameter_notification "$__arg1" "$__arg2"
+	/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit
+fi
+
+if [ "$action" = "get_tags" -o "$action" = "get_all" ]; then
+	freecwmp_get_parameter_tags "x_tags" "$__arg1"
+	freecwmp_tags_output "$__arg1" "$x_tags"
+fi
+
+if [ "$action" = "set_tag" ]; then
+	freecwmp_set_parameter_tag "$__arg1" "$__arg2"
 	/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit
 fi
 
