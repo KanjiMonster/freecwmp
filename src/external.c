@@ -29,14 +29,14 @@ static struct uloop_process uproc;
 int external_get_action(char *action, char *name, char **value)
 {
 	freecwmp_log_message(NAME, L_NOTICE,
-		"executing get %s '%s'\n", action, name);
+			     "executing get %s '%s'\n", action, name);
 
 	int pfds[2];
 	if (pipe(pfds) < 0)
 		return -1;
 
 	if ((uproc.pid = fork()) == -1)
-		return -1;
+		goto error;
 
 	if (uproc.pid == 0) {
 		/* child */
@@ -60,7 +60,7 @@ int external_get_action(char *action, char *name, char **value)
 		exit(ESRCH);
 
 	} else if (uproc.pid < 0)
-		return -1;
+		goto error;
 
 	/* parent */
 	close(pfds[1]);
@@ -76,20 +76,26 @@ int external_get_action(char *action, char *name, char **value)
 	*value = (char *) calloc(1, sizeof(char));
 	while ((rxed = read(pfds[0], buffer, sizeof(buffer))) > 0) {
 		*value = (char *) realloc(*value, (strlen(*value) + rxed + 1) * sizeof(char));
-		if (!(*value)) return -1;
+		if (!(*value)) goto error;
 		bzero(*value + strlen(*value), rxed + 1);
 		memcpy(*value + strlen(*value), buffer, rxed);
 	}
 
 	if (!strlen(*value)) {
 		FREE(*value);
-		return 0;
+		goto done;
 	}
 
 	if (rxed < 0)
-		return -1;
-	
+		goto error;
+
+done:
+	close(pfds[0]);
 	return 0;
+
+error:
+	close(pfds[0]);
+	return -1;
 }
 
 int external_set_action_write(char *action, char *name, char *value)
