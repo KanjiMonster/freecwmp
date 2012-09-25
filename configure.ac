@@ -1,5 +1,5 @@
 AC_INIT([freecwmp], [0.1], [freecwmp@lukaperkov.net])
-AM_INIT_AUTOMAKE(freecwmp, 0.1)
+AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/freecwmp.c])
 
 # additional options
