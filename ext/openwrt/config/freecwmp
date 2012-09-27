@@ -43,4 +43,6 @@ config scripts
 	list location /usr/share/freecwmp/functions/wan_device
 	list get_value_function get_wan_device
 	list set_value_function set_wan_device
+	list location /usr/share/freecwmp/functions/misc
+	list get_value_function get_misc
 
