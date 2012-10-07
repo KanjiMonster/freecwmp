@@ -46,6 +46,52 @@ freecwmp_tags_output() {
 	freecwmp_output "$1" "$2" "T"
 }
 
+freecwmp_parse_formated_parameter() {
+	local _clean_parameter="$1"
+	local _formated_parameter="$2"
+	local _values
+
+	local _clean_parameter_array=`echo $_clean_parameter | sed 's/\./ /g'`
+
+	local i
+	local j=0
+	for i in $_formated_parameter
+	do
+		let j=$j+1
+		if [ "x$i" == "xXXXXX" ]; then
+			# get value for sections maked as XXXXX
+			local m
+			local n=0
+			for m in $_clean_parameter_array
+			do
+				let n=$n+1
+				if [ $n -eq $j ]; then
+					if [ "x$_values" == "x" ]; then
+						_values="$m"
+					else
+						_values="$_values $m"
+					fi
+				fi
+			done
+		else
+			# check if sections not marked as XXXXX match
+			local m
+			local n=0
+			for m in $_clean_parameter_array
+			do
+				let n=$n+1
+				if [ $n -eq $j -a "x$m" != "x$i" ]; then
+					eval "export -- \"$3=-1\""
+					return
+				fi
+			done
+		fi
+	done
+
+	eval "export -- \"$3=0\""
+	eval "export -- \"$4=\"\"$_values\"\"\""
+}
+
 freecwmp_config_cwmp() {
 	config_get __parameter "$1" "parameter"
 	config_get __value "$1" "value"
