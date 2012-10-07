@@ -12,6 +12,7 @@ DEFINE_boolean 'empty' false 'output empty parameters' 'e'
 DEFINE_boolean 'last' false 'output only last line ; for parameters that tend to have huge output' 'l'
 DEFINE_boolean 'debug' false 'give debug output' 'd'
 DEFINE_boolean 'dummy' false 'echo system commands' 'D'
+DEFINE_boolean 'force' false 'force getting values for certain parameters' 'f'
 DEFINE_string 'url' '' 'file to download [download only]' 'u'
 DEFINE_string 'size' '' 'size of file to download [download only]' 's'
 
@@ -112,6 +113,16 @@ config_load freecwmp
 config_foreach handle_scripts "scripts"
 
 if [ "$action" = "get_value" -o "$action" = "get_all" ]; then
+	if [ ${FLAGS_force} -eq ${FLAGS_FALSE} ]; then
+		__tmp_arg="InternetGatewayDevice."
+		# TODO: don't check only string length ; but this is only used
+		#       for getting correct prefix of CWMP parameter anyway
+		if [  ${#__arg1} -lt ${#__tmp_arg} ]; then
+			echo "CWMP parameters usualy begin with 'InternetGatewayDevice.', if you want"
+			echo "to force script execution with provided parameter use '-f' flag.       "
+			exit -1
+		fi
+	fi
 	for function_name in $get_value_functions
 	do
 		$function_name "$__arg1"
