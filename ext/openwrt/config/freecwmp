@@ -45,4 +45,6 @@ config scripts
 	list set_value_function set_wan_device
 	list location /usr/share/freecwmp/functions/misc
 	list get_value_function get_misc
+	list location /usr/share/freecwmp/functions/device_users
+	list get_value_function get_device_users
 
