@@ -5,6 +5,5 @@
 
 #default_management_server_acs_hostname=""
 #default_management_server_connection_request_url=""
-default_wan_device_mng_interface="eth0"
 #default_wan_device_mng_interface_ip=""
 #default_wan_device_mng_interface_mac=""
