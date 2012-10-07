@@ -46,6 +46,10 @@ freecwmp_tags_output() {
 	freecwmp_output "$1" "$2" "T"
 }
 
+freecwmp_not_implemented() {
+	freecwmp_output "$1" "NOT_IMPLEMENTED"
+}
+
 freecwmp_parse_formated_parameter() {
 	local _clean_parameter="$1"
 	local _formated_parameter="$2"
