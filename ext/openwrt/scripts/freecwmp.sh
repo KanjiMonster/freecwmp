@@ -114,12 +114,12 @@ config_foreach handle_scripts "scripts"
 
 if [ "$action" = "get_value" -o "$action" = "get_all" ]; then
 	if [ ${FLAGS_force} -eq ${FLAGS_FALSE} ]; then
-		__tmp_arg="InternetGatewayDevice."
+		__tmp_arg="Device."
 		# TODO: don't check only string length ; but this is only used
 		#       for getting correct prefix of CWMP parameter anyway
 		if [  ${#__arg1} -lt ${#__tmp_arg} ]; then
-			echo "CWMP parameters usualy begin with 'InternetGatewayDevice.', if you want"
-			echo "to force script execution with provided parameter use '-f' flag.       "
+			echo "CWMP parameters usualy begin with 'InternetGatewayDevice.' or 'Device.'     "
+			echo "if you want to force script execution with provided parameter use '-f' flag."
 			exit -1
 		fi
 	fi
