@@ -26,6 +26,8 @@ $ ln -sf `pwd`/ext/openwrt/scripts/functions/management_server /usr/share/freecw
 $ ln -sf `pwd`/ext/openwrt/scripts/functions/voice_service /usr/share/freecwmp/functions/voice_service
 $ ln -sf `pwd`/ext/openwrt/scripts/functions/wan_device /usr/share/freecwmp/functions/wan_device
 $ ln -sf `pwd`/ext/openwrt/scripts/functions/x_freecwmp_org /usr/share/freecwmp/functions/x_freecwmp_org
+$ ln -sf `pwd`/ext/openwrt/scripts/functions/device_users /usr/share/freecwmp/functions/device_users 
+$ ln -sf `pwd`/ext/openwrt/scripts/functions/device_hosts /usr/share/freecwmp/functions/device_hosts
 
 run freecwmpd
 =============
