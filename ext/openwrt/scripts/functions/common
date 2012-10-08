@@ -56,10 +56,11 @@ freecwmp_parse_formated_parameter() {
 	local _values
 
 	local _clean_parameter_array=`echo $_clean_parameter | sed 's/\./ /g'`
+	local _formated_parameter_array=`echo $_formated_parameter | sed 's/\./ /g'`
 
 	local i
 	local j=0
-	for i in $_formated_parameter
+	for i in $_formated_parameter_array
 	do
 		let j=$j+1
 		if [ "x$i" == "x{i}" ]; then

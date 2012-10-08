@@ -52,7 +52,7 @@ local num
 
 # TODO: Device.Hosts.Host.{i}.Alias (alias support does not exist)
 
-freecwmp_parse_formated_parameter "$parameter" "Device Hosts Host {i} PhysAddress" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "Device.Hosts.Host.{i}.PhysAddress" "rc" "num"
 if [ $rc -eq 0 ]; then
 	local val
 	if [ $num -le $num_static_leases ]; then
@@ -68,7 +68,7 @@ if [ $rc -eq 0 ]; then
 	return
 fi
 
-freecwmp_parse_formated_parameter "$parameter" "Device Hosts Host {i} IPAddress" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "Device.Hosts.Host.{i}.IPAddress" "rc" "num"
 if [ $rc -eq 0 ]; then
 	local val
 	get_device_hosts_ip_address "$leases_file" "$num" "$num_static_leases" "$num_dynamic_leases" "val"
@@ -76,7 +76,7 @@ if [ $rc -eq 0 ]; then
 	return
 fi
 
-freecwmp_parse_formated_parameter "$parameter" "Device Hosts Host {i} AddressSource" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "Device.Hosts.Host.{i}.AddressSource" "rc" "num"
 if [ $rc -eq 0 ]; then
 	local val
 	if [ $num -le $num_static_leases ]; then
@@ -92,7 +92,7 @@ fi
 
 # TODO: Device.Hosts.Host.{i}.DHCPClient (freecwmp needs to support other parameters first)
 
-freecwmp_parse_formated_parameter "$parameter" "Device Hosts Host {i} LeaseTimeRemaining" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "Device.Hosts.Host.{i}.LeaseTimeRemaining" "rc" "num"
 if [ $rc -eq 0 ]; then
 	local val
 	if [ $num -le $num_static_leases ]; then
@@ -116,7 +116,7 @@ fi
 # TODO: Device.Hosts.Host.{i}.ClientID (DHCP option 61 not supported with dnsmasq)
 # TODO: Device.Hosts.Host.{i}.UserClassID (DHCP option 77 not supported with dnsmasq)
 
-freecwmp_parse_formated_parameter "$parameter" "Device Hosts Host {i} HostName" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "Device.Hosts.Host.{i}.HostName" "rc" "num"
 if [ $rc -eq 0 ]; then
 	local val
 	if [ $num -le $num_static_leases ]; then
@@ -135,7 +135,7 @@ fi
 
 # TODO: Device.Hosts.Host.{i}.ClientID (DHCP option 61 not supported with dnsmasq)
 
-freecwmp_parse_formated_parameter "$parameter" "Device Hosts Host {i} Active" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "Device.Hosts.Host.{i}.Active" "rc" "num"
 if [ $rc -eq 0 ]; then
 	local val
 	local ip
@@ -147,7 +147,7 @@ if [ $rc -eq 0 ]; then
 fi
 
 # TODO: we support only one IPv4 address per host
-freecwmp_parse_formated_parameter "$parameter" "Device Hosts Host {i} IPv4AddressNumberOfEntries" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "Device.Hosts.Host.{i}.IPv4AddressNumberOfEntries" "rc" "num"
 if [ $rc -eq 0 ]; then
 	local val
 	let local n=$num_static_leases+$num_dynamic_leases
@@ -159,7 +159,7 @@ if [ $rc -eq 0 ]; then
 fi
 
 # TODO: we do not support IPv6 address
-freecwmp_parse_formated_parameter "$parameter" "Device Hosts Host {i} IPv6AddressNumberOfEntries" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "Device.Hosts.Host.{i}.IPv6AddressNumberOfEntries" "rc" "num"
 if [ $rc -eq 0 ]; then
 	local val
 	let local n=$num_static_leases+$num_dynamic_leases
@@ -171,7 +171,7 @@ if [ $rc -eq 0 ]; then
 fi
 
 # TODO: we support only one IPv4 address per host
-freecwmp_parse_formated_parameter "$parameter" "Device Hosts Host {i} IPv4Address {i} IPAddress" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "Device.Hosts.Host.{i}.IPv4Address.{i}.IPAddress" "rc" "num"
 if [ $rc -eq 0 ]; then
 	local val
 	local num1=`echo $num | awk '{ print $1 }'`
