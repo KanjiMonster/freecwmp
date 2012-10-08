@@ -62,8 +62,8 @@ freecwmp_parse_formated_parameter() {
 	for i in $_formated_parameter
 	do
 		let j=$j+1
-		if [ "x$i" == "xXXXXX" ]; then
-			# get value for sections maked as XXXXX
+		if [ "x$i" == "x{i}" ]; then
+			# get value for sections maked as {i}
 			local m
 			local n=0
 			for m in $_clean_parameter_array
@@ -78,7 +78,7 @@ freecwmp_parse_formated_parameter() {
 				fi
 			done
 		else
-			# check if sections not marked as XXXXX match
+			# check if sections not marked as {i} match
 			local m
 			local n=0
 			for m in $_clean_parameter_array

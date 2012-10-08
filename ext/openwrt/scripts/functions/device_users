@@ -14,9 +14,9 @@ esac
 local rc
 local num
 
-# TODO: InternetGatewayDevice.Device.Users.User.1.Alias
+# TODO: InternetGatewayDevice.Device.Users.User.{i}.Alias
 
-freecwmp_parse_formated_parameter "$parameter" "InternetGatewayDevice Device Users User XXXXX Enable" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "InternetGatewayDevice Device Users User {i} Enable" "rc" "num"
 if [ $rc -eq 0 ]; then
 	# TODO: this is very system dependent, for now just look at users shell
 	local sed_cmd=`echo -n \'$num; echo p\'`
@@ -25,7 +25,7 @@ if [ $rc -eq 0 ]; then
 	return
 fi
 
-freecwmp_parse_formated_parameter "$parameter" "InternetGatewayDevice Device Users User XXXXX RemoteAccessCapable" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "InternetGatewayDevice Device Users User {i} RemoteAccessCapable" "rc" "num"
 if [ $rc -eq 0 ]; then
 	# TODO: this is very system dependent, for now just look at users shell
 	local sed_cmd=`echo -n \'$num; echo p\'`
@@ -34,7 +34,7 @@ if [ $rc -eq 0 ]; then
 	return
 fi
 
-freecwmp_parse_formated_parameter "$parameter" "InternetGatewayDevice Device Users User XXXXX Username" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "InternetGatewayDevice Device Users User {i} Username" "rc" "num"
 if [ $rc -eq 0 ]; then
 	local sed_cmd=`echo -n \'$num; echo p\'`
 	local val=`eval sed -n $sed_cmd /etc/passwd | awk -F ':' '{ print $1 }'`
@@ -42,7 +42,7 @@ if [ $rc -eq 0 ]; then
 	return
 fi
 
-freecwmp_parse_formated_parameter "$parameter" "InternetGatewayDevice Device Users User XXXXX Password" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "InternetGatewayDevice Device Users User {i} Password" "rc" "num"
 if [ $rc -eq 0 ]; then
 	local sed_cmd=`echo -n \'$num; echo p\'`
 	# if we *really* wanted to get the password we could do it like this
@@ -52,7 +52,7 @@ if [ $rc -eq 0 ]; then
 	return
 fi
 
-freecwmp_parse_formated_parameter "$parameter" "InternetGatewayDevice Device Users User XXXXX Language" "rc" "num"
+freecwmp_parse_formated_parameter "$parameter" "InternetGatewayDevice Device Users User {i} Language" "rc" "num"
 if [ $rc -eq 0 ]; then
 	freecwmp_output "$parameter" ""
 	return
