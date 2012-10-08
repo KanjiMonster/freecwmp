@@ -47,4 +47,6 @@ config scripts
 	list get_value_function get_misc
 	list location /usr/share/freecwmp/functions/device_users
 	list get_value_function get_device_users
+	list location /usr/share/freecwmp/functions/device_hosts
+	list get_value_function get_device_hosts
 
