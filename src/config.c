@@ -137,10 +137,10 @@ section_found:
 			/* TODO: ok, it's late and this does what i need */
 			bool valid = false;
 
-			if (!(strncmp((uci_to_option(e))->v.string, "http\0", 5)))
+			if (!(strncmp((uci_to_option(e))->v.string, "http", 5)))
 				valid = true;
 
-			if (!(strncmp((uci_to_option(e))->v.string, "https\0", 6)))
+			if (!(strncmp((uci_to_option(e))->v.string, "https", 6)))
 				valid = true;
 
 			if (!valid) {
