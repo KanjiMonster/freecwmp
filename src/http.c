@@ -44,25 +44,14 @@ static struct http_server http_s;
 int
 http_client_init(void)
 {
-	int len;
-
-	len = snprintf(NULL, 0, "%s://%s:%s@%s:%s%s",
-		       config->acs->scheme,
-		       config->acs->username,
-		       config->acs->password,
-		       config->acs->hostname,
-		       config->acs->port,
-		       config->acs->path);
-
-	http_c.url = (char *) calloc((len + 1), sizeof(char));
+	freecwmp_snprintf(&http_c.url, "%s://%s:%s@%s:%s%s",
+			  config->acs->scheme,
+			  config->acs->username,
+			  config->acs->password,
+			  config->acs->hostname,
+			  config->acs->port,
+			  config->acs->path);
 	if (!http_c.url) return -1;
-	snprintf(http_c.url, (len + 1), "%s://%s:%s@%s:%s%s\0",
-		 config->acs->scheme,
-		 config->acs->username,
-		 config->acs->password,
-		 config->acs->hostname,
-		 config->acs->port,
-		 config->acs->path);
 
 	DDF("+++ HTTP CLIENT CONFIGURATION +++\n");
 	DD("url: %s\n", http_c.url);
@@ -355,15 +344,13 @@ http_new_client(struct uloop_fd *ufd, unsigned events)
 					if (!acs_auth_basic)
 						continue;
 
-					len = snprintf(NULL, 0, "%s:%s", username, password);
-					auth_basic_check = (char *) calloc((len + 1), sizeof(char));
-					if (errno == ENOMEM) {
+					freecwmp_snprintf(&auth_basic_check, "%s:%s", username, password);
+					if (!auth_basic_check) {
 						FREE(username);
 						FREE(password);
 						free(acs_auth_basic);
 						goto error_child;
 					}
-					snprintf(auth_basic_check, (len + 1), "%s:%s\0", username, password);
 
 					if (size == strlen(auth_basic_check)) {
 						len = size;
@@ -392,7 +379,7 @@ free_resources:
 			}
 error_child:
 			/* here we are because of an error, e.g. timeout */
-			status = errno;
+			status = ETIMEDOUT|ENOMEM;
 			goto done_child;
 
 http_end_child:
