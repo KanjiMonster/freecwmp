@@ -29,9 +29,8 @@ AM_PROG_CC_C_O
 # checks for libraries
 AC_ARG_WITH([libfreecwmp-include-path],
   [AS_HELP_STRING([--with-libfreecwmp-include-path],
-    [location of the libfreecwmp library headers, defaults to /usr/include])],
-  [LIBFREECWMP_CFLAGS="-I$withval"],
-  [LIBFREECWMP_CFLAGS='-I/usr/include'])
+    [location of the libfreecwmp library headers])],
+  [LIBFREECWMP_CFLAGS="-I$withval"])
 AC_SUBST([LIBFREECWMP_CFLAGS])
 
 AC_ARG_WITH([libfreecwmp-lib-path],
@@ -43,9 +42,8 @@ AC_SUBST([LIBFREECWMP_LIBS])
 
 AC_ARG_WITH([uci-include-path],
   [AS_HELP_STRING([--with-uci-include-path],
-    [location of the uci library headers, defaults to /usr/include])],
-  [LIBUCI_CFLAGS="-I$withval"],
-  [LIBUCI_CFLAGS='-I/usr/include'])
+    [location of the uci library headers])],
+  [LIBUCI_CFLAGS="-I$withval"])
 AC_SUBST([LIBUCI_CFLAGS])
 
 AC_ARG_WITH([uci-lib-path],
@@ -57,9 +55,8 @@ AC_SUBST([LIBUCI_LIBS])
 
 AC_ARG_WITH([libubox-include-path],
   [AS_HELP_STRING([--with-libubox-include-path],
-    [location of the libubox library headers, defaults to /usr/include])],
-  [LIBUBOX_CFLAGS="-I$withval"],
-  [LIBUBOX_CFLAGS='-I/usr/include'])
+    [location of the libubox library headers])],
+  [LIBUBOX_CFLAGS="-I$withval"])
 AC_SUBST([LIBUBOX_CFLAGS])
 
 AC_ARG_WITH([libubox-lib-path],
@@ -71,9 +68,8 @@ AC_SUBST([LIBUBOX_LIBS])
 
 AC_ARG_WITH([libubus-include-path],
   [AS_HELP_STRING([--with-libubus-include-path],
-    [location of the libubus library headers, defaults to /usr/include])],
-  [LIBUBUS_CFLAGS="-I$withval"],
-  [LIBUBUS_CFLAGS='-I/usr/include'])
+    [location of the libubus library headers])],
+  [LIBUBUS_CFLAGS="-I$withval"])
 AC_SUBST([LIBUBUS_CFLAGS])
 
 AC_ARG_WITH([libubus-lib-path],
@@ -95,9 +91,8 @@ AM_COND_IF([HTTP_ZSTREAM], [
  AC_DEFINE(HTTP_ZSTREAM)
  AC_ARG_WITH([zstream-include-path],
    [AS_HELP_STRING([--with-zstream-include-path],
-     [location of the zstream library headers, defaults to /usr/include])],
-   [LIBZSTREAM_CFLAGS="-I$withval"],
-   [LIBZSTREAM_CFLAGS='-I/usr/include'])
+     [location of the zstream library headers])],
+   [LIBZSTREAM_CFLAGS="-I$withval"])
  AC_SUBST([LIBZSTREAM_CFLAGS])
 
  AC_ARG_WITH([zstream-lib-path],
