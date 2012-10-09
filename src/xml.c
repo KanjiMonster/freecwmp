@@ -37,7 +37,15 @@ const static char *cwmp_urls[] = {
 		"urn:dslforum-org:cwmp-1-2", 
 		NULL };
 
-static struct cwmp_namespaces ns;
+static struct cwmp_namespaces
+{
+	char *soap_env;
+	char *soap_enc;
+	char *xsd;
+	char *xsi;
+	char *cwmp;
+} ns;
+
 const struct rpc_method rpc_methods[] = {
 	{ "SetParameterValues", xml_handle_set_parameter_values },
 	{ "GetParameterValues", xml_handle_get_parameter_values },

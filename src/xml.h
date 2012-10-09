@@ -12,15 +12,6 @@
 
 #include <microxml.h>
 
-static struct cwmp_namespaces
-{
-	char *soap_env;
-	char *soap_enc;
-	char *xsd;
-	char *xsi;
-	char *cwmp;
-};
-
 void xml_exit(void);
 
 int xml_prepare_inform_message(char **msg_out);
