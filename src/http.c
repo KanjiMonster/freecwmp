@@ -305,7 +305,8 @@ http_new_client(struct uloop_fd *ufd, unsigned events)
 
 				if (!strncasecmp(buffer, "Authorization: Basic ", strlen("Authorization: Basic "))) {
 					const char *c1, *c2, *min, *val;
-					char *username, *password;
+					char *username = NULL;
+					char *password = NULL;
 					char *acs_auth_basic = NULL;
 					char *auth_basic_check = NULL;
 					int len;
@@ -317,6 +318,8 @@ http_new_client(struct uloop_fd *ufd, unsigned events)
 
 					if (!username || !password) {
 						// if we dont have username or password configured proceed with connecting to ACS
+						FREE(username);
+						FREE(password);
 						auth_status = 1;
 						goto http_end_child;
 					}
