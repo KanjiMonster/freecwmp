@@ -23,7 +23,7 @@
 
 struct rpc_method {
 	const char *name;
-	int8_t (*handler)(mxml_node_t *body_in, mxml_node_t *tree_in,
+	int (*handler)(mxml_node_t *body_in, mxml_node_t *tree_in,
 			  mxml_node_t *tree_out);
 };
 
