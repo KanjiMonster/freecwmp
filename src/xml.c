@@ -671,7 +671,7 @@ int xml_handle_get_parameter_values(mxml_node_t *body_in,
 			}
 			counter++;
 
-			n = mxmlFindElement(tree_out, tree_out, "soap_env:Body", NULL, NULL, MXML_DESCEND);
+			n = mxmlFindElement(tree_out, tree_out, "ParameterList", NULL, NULL, MXML_DESCEND);
 			if (!n) goto out;
 
 			n = mxmlNewElement(n, "ParameterValueStruct");
