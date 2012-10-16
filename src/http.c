@@ -71,6 +71,11 @@ http_client_init(void)
 	if (!http_c.header_list) return -1;
 	http_c.header_list = curl_slist_append(http_c.header_list, "Content-Type: text/xml");
 	if (!http_c.header_list) return -1;
+# ifdef ACS_FUSION
+	char *expect_header = "Expect:";
+	http_c.header_list = curl_slist_append(http_c.header_list, expect_header);
+	if (!http_c.header_list) return -1;
+# endif
 #endif /* HTTP_CURL */
 
 #ifdef HTTP_ZSTREAM

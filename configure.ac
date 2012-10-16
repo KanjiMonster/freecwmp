@@ -4,10 +4,11 @@ AC_CONFIG_SRCDIR([src/freecwmp.c])
 
 # additional options
 AC_ARG_ENABLE(acs, [AS_HELP_STRING([--enable-acs],
-	[specify which ACS is going to be used; there are some optimizations available for HDM (default --enable-acs=multi]))],,
+	[specify which ACS is going to be used; there are some optimizations available for HDM and Fusion ACS (default --enable-acs=multi]))],,
 	[AC_DEFINE(ACS_MULTI)])
 
 AS_IF([test "x$enable_acs" = "xhdm"], [AC_DEFINE(ACS_HDM)])
+AS_IF([test "x$enable_acs" = "xfusion"], [AC_DEFINE(ACS_FUSION)])
 AS_IF([test "x$enable_acs" = "xmulti"], [AC_DEFINE(ACS_MULTI)])
 AS_IF([test "x$enable_acs" = "xyes"], [AC_DEFINE(ACS_MULTI)])
 AS_IF([test "x$enable_acs" = "xno"], [AC_DEFINE(ACS_MULTI)])
