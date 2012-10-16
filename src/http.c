@@ -75,7 +75,7 @@ http_client_init(void)
 	char *expect_header = "Expect:";
 	http_c.header_list = curl_slist_append(http_c.header_list, expect_header);
 	if (!http_c.header_list) return -1;
-# endif
+# endif /* ACS_FUSION */
 #endif /* HTTP_CURL */
 
 #ifdef HTTP_ZSTREAM
@@ -135,7 +135,7 @@ http_get_response(void *buffer, size_t size, size_t rxed, char **msg_in)
 
 	return size * rxed;
 }
-#endif
+#endif /* HTTP_CURL */
 
 int8_t
 http_send_message(char *msg_out, char **msg_in)
