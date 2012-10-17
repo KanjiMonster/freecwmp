@@ -39,7 +39,7 @@ local num_dynamic_leases
 get_device_hosts_number_of_leases "$leases_file" "num_static_leases" "num_dynamic_leases"
 
 # internal TR-069 to TR-181 parameter transformation
-local parameter=`echo -n $1 | sed "s/InternetGatewayDevice.LANDevice.1./Device./g"`
+local parameter=`echo -n $1 | sed "s/InternetGatewayDevice\.LANDevice\.1\./Device\./g"`
 
 case "$parameter" in
 	Device.Hosts.HostNumberOfEntries)
