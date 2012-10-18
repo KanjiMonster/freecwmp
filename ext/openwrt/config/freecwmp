@@ -50,4 +50,6 @@ config scripts
 	list set_value_function set_device_users
 	list location /usr/share/freecwmp/functions/device_hosts
 	list get_value_function get_device_hosts
+	list location /usr/share/freecwmp/functions/device_routing
+	list get_value_function get_device_routing
 
