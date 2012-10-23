@@ -464,16 +464,13 @@ find_method:
 
 	b = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
 	FREE(c);
-
 	if (!b) goto error;
 
-
-	// TODO: why do we need two times run mxmlWalkNext() ?
-	b = mxmlWalkNext(b, tree_in, MXML_DESCEND_FIRST);
-	if (!b) goto error;
-	b = mxmlWalkNext(b, tree_in, MXML_DESCEND_FIRST);
-	if (!b || !b->value.element.name)
-		goto error;
+	while (1) {
+		b = mxmlWalkNext(b, tree_in, MXML_DESCEND_FIRST);
+		if (!b) goto error;
+		if (b->type == MXML_ELEMENT) break;
+	}
 	
 	c = b->value.element.name;
 	/* convert QName to localPart, check that ns is the expected one */
