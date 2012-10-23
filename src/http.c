@@ -44,14 +44,14 @@ static struct http_server http_s;
 int
 http_client_init(void)
 {
-	freecwmp_snprintf(&http_c.url, "%s://%s:%s@%s:%s%s",
-			  config->acs->scheme,
-			  config->acs->username,
-			  config->acs->password,
-			  config->acs->hostname,
-			  config->acs->port,
-			  config->acs->path);
-	if (!http_c.url) return -1;
+	if (asprintf(&http_c.url, "%s://%s:%s@%s:%s%s",
+		     config->acs->scheme,
+		     config->acs->username,
+		     config->acs->password,
+		     config->acs->hostname,
+		     config->acs->port,
+		     config->acs->path) == -1)
+		return -1;
 
 	DDF("+++ HTTP CLIENT CONFIGURATION +++\n");
 	DD("url: %s\n", http_c.url);

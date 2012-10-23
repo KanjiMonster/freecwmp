@@ -152,8 +152,8 @@ static int xml_prepare_events_inform(mxml_node_t *tree)
 	pthread_mutex_unlock(&event_lock);
 
 	if (n) {
-		asprintf(&c, "cwmp:EventStruct[%u]", n);
-		if (!c) return -1;
+		if (asprintf(&c, "cwmp:EventStruct[%u]", n) == -1)
+			return -1;
 
 		mxmlElementSetAttr(b1, "soap_enc:arrayType", c);
 		FREE(c);
@@ -390,8 +390,8 @@ int xml_parse_inform_response_message(char *msg_in)
 	tree = mxmlLoadString(NULL, msg_in, MXML_NO_CALLBACK);
 	if (!tree) goto error;
 
-	asprintf(&c, "%s:%s", ns.soap_env, "Fault");
-	if (!c) goto error;
+	if (asprintf(&c, "%s:%s", ns.soap_env, "Fault") == -1)
+		goto error;
 
 	b = mxmlFindElement(tree, tree, c, NULL, NULL, MXML_DESCEND);
 	FREE(c);
@@ -437,8 +437,8 @@ int xml_handle_message(char *msg_in, char **msg_out)
 	if (!tree_in) goto error;
 
 	/* handle cwmp:ID */
-	asprintf(&c, "%s:%s", ns.cwmp, "ID");
-	if (!c) goto error;
+	if (asprintf(&c, "%s:%s", ns.cwmp, "ID") == -1)
+		goto error;
 
 	b = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
 	FREE(c);
@@ -459,8 +459,8 @@ int xml_handle_message(char *msg_in, char **msg_out)
 	if (!b) goto error;
 
 find_method:
-	asprintf(&c, "%s:%s", ns.soap_env, "Body");
-	if (!c) goto error;
+	if (asprintf(&c, "%s:%s", ns.soap_env, "Body") == -1)
+		goto error;
 
 	b = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
 	FREE(c);
@@ -506,8 +506,8 @@ find_method:
 				    NULL, NULL, MXML_DESCEND);
 		if (!b) goto error;
 
-		asprintf(&fault_message, "%s not supported", c);
-		if (!fault_message) goto error;
+		if (asprintf(&fault_message, "%s not supported", c) == -1)
+			goto error;
 
 		if (!xml_create_generic_fault_message(b, true, "9000", fault_message)) {
 			FREE(fault_message);
@@ -709,8 +709,8 @@ int xml_handle_get_parameter_values(mxml_node_t *body_in,
 			    NULL, NULL, MXML_DESCEND);
 	if (!b) goto out;
 
-	asprintf(&c, "cwmp:ParameterValueStruct[%d]", counter);
-	if (!c) goto out;
+	if (asprintf(&c, "cwmp:ParameterValueStruct[%d]", counter) == -1)
+		goto out;
 
 	mxmlElementSetAttr(b, "soap_enc:arrayType", c);
 	FREE(c);
@@ -733,8 +733,8 @@ static int xml_handle_set_parameter_attributes(mxml_node_t *body_in,
 	uint8_t attr_notification_update;
 
 	/* handle cwmp:SetParameterAttributes */
-	asprintf(&c, "%s:%s", ns.cwmp, "SetParameterAttributes");
-	if (!c) return -1;
+	if (asprintf(&c, "%s:%s", ns.cwmp, "SetParameterAttributes") == -1)
+		return -1;
 
 	n = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
 	FREE(c);
@@ -799,8 +799,8 @@ static int xml_handle_download(mxml_node_t *body_in,
 	mxml_node_t *n, *t, *b = body_in;
 	char *c, *download_url, *download_size;
 
-	asprintf(&c, "%s:%s", ns.cwmp, "Download");
-	if (!c) return -1;
+	if (asprintf(&c, "%s:%s", ns.cwmp, "Download") == -1)
+		return -1;
 
 	n = mxmlFindElement(tree_in, tree_in, c, NULL, NULL, MXML_DESCEND);
 	FREE(c);
